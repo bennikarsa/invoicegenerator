@@ -1,0 +1,82 @@
+import { NextResponse } from "next/server";
+
+import { sanitizeCustomerInput, validateCustomerInput } from "@/lib/customers";
+import { getCurrentAuthSession } from "@/lib/server-auth";
+import { createSupabaseClient } from "@/lib/supabase";
+
+export const dynamic = "force-dynamic";
+
+type RouteContext = {
+  params: {
+    id: string;
+  };
+};
+
+function unauthorizedResponse() {
+  return NextResponse.json({ ok: false, message: "Session login tidak valid." }, { status: 401 });
+}
+
+export async function PUT(request: Request, { params }: RouteContext) {
+  if (!getCurrentAuthSession()) {
+    return unauthorizedResponse();
+  }
+
+  const body = (await request.json().catch(() => null)) as Partial<
+    Record<"name" | "phone" | "address", unknown>
+  > | null;
+  const input = sanitizeCustomerInput(body ?? {});
+  const validation = validateCustomerInput(input);
+
+  if (!validation.ok) {
+    return NextResponse.json(validation, { status: 400 });
+  }
+
+  try {
+    const supabase = createSupabaseClient();
+    const { data, error } = await supabase
+      .from("customers")
+      .update(input)
+      .eq("id", params.id)
+      .select("id,name,phone,address,created_at")
+      .single();
+
+    if (error) {
+      return NextResponse.json({ ok: false, message: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true, customer: data });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        ok: false,
+        message: error instanceof Error ? error.message : "Gagal memperbarui pembeli."
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(_request: Request, { params }: RouteContext) {
+  if (!getCurrentAuthSession()) {
+    return unauthorizedResponse();
+  }
+
+  try {
+    const supabase = createSupabaseClient();
+    const { error } = await supabase.from("customers").update({ deleted_at: new Date().toISOString() }).eq("id", params.id);
+
+    if (error) {
+      return NextResponse.json({ ok: false, message: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        ok: false,
+        message: error instanceof Error ? error.message : "Gagal menghapus pembeli."
+      },
+      { status: 500 }
+    );
+  }
+}
