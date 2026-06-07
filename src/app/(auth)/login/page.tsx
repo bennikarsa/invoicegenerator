@@ -33,7 +33,7 @@ export default function LoginPage() {
       return;
     }
 
-    window.sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(result.session));
+    window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(result.session));
     router.replace("/generate");
   }
 

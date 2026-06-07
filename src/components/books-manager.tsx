@@ -77,7 +77,12 @@ export function BooksManager() {
   }, []);
 
   useEffect(() => {
-    setRole(parseAuthSession(window.sessionStorage.getItem(AUTH_SESSION_KEY))?.role ?? null);
+    setRole(
+      (
+        parseAuthSession(window.localStorage.getItem(AUTH_SESSION_KEY)) ??
+        parseAuthSession(window.sessionStorage.getItem(AUTH_SESSION_KEY))
+      )?.role ?? null
+    );
     fetchBooks("");
   }, [fetchBooks]);
 

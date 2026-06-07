@@ -11,6 +11,7 @@ export function LogoutButton() {
     await fetch("/api/auth/logout", {
       method: "POST"
     }).catch(() => null);
+    window.localStorage.removeItem(AUTH_SESSION_KEY);
     window.sessionStorage.removeItem(AUTH_SESSION_KEY);
     router.replace("/login");
   }

@@ -12,13 +12,16 @@ export function DashboardClientShell({ children }: { children: React.ReactNode }
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    const storedSession = parseAuthSession(window.sessionStorage.getItem(AUTH_SESSION_KEY));
+    const storedSession =
+      parseAuthSession(window.localStorage.getItem(AUTH_SESSION_KEY)) ??
+      parseAuthSession(window.sessionStorage.getItem(AUTH_SESSION_KEY));
 
     if (!storedSession) {
       router.replace("/login");
       return;
     }
 
+    window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(storedSession));
     setSession(storedSession);
     setIsChecking(false);
   }, [router]);

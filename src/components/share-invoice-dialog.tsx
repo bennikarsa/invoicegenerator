@@ -8,10 +8,11 @@ type ShareInvoiceDialogProps = {
   invoiceNumber: string;
   phone: string;
   text: string;
+  onComplete?: () => void;
   onClose: () => void;
 };
 
-export function ShareInvoiceDialog({ invoiceNumber, phone, text, onClose }: ShareInvoiceDialogProps) {
+export function ShareInvoiceDialog({ invoiceNumber, phone, text, onComplete, onClose }: ShareInvoiceDialogProps) {
   const [message, setMessage] = useState("");
   const canNativeShare = typeof navigator !== "undefined" && "share" in navigator;
   const whatsAppUrl = useMemo(() => buildWhatsAppUrl(phone, text), [phone, text]);
@@ -25,7 +26,8 @@ export function ShareInvoiceDialog({ invoiceNumber, phone, text, onClose }: Shar
   async function copyText() {
     try {
       await navigator.clipboard.writeText(text);
-      setMessage("Teks invoice berhasil disalin.");
+      onComplete?.();
+      onClose();
     } catch {
       setMessage("Gagal menyalin otomatis. Pilih teks preview lalu salin manual.");
     }
@@ -41,6 +43,8 @@ export function ShareInvoiceDialog({ invoiceNumber, phone, text, onClose }: Shar
         title: `Invoice ${invoiceNumber}`,
         text
       });
+      onComplete?.();
+      onClose();
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
@@ -90,6 +94,10 @@ export function ShareInvoiceDialog({ invoiceNumber, phone, text, onClose }: Shar
           <a
             className="rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white"
             href={whatsAppUrl}
+            onClick={() => {
+              onComplete?.();
+              onClose();
+            }}
             rel="noreferrer"
             target="_blank"
           >
@@ -98,6 +106,10 @@ export function ShareInvoiceDialog({ invoiceNumber, phone, text, onClose }: Shar
           <a
             className="rounded-md border border-slate-300 px-4 py-3 text-sm font-semibold hover:bg-slate-100"
             href={emailUrl}
+            onClick={() => {
+              onComplete?.();
+              onClose();
+            }}
           >
             Kirim lewat Email
           </a>

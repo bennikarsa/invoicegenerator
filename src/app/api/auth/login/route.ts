@@ -33,6 +33,7 @@ export async function POST(request: Request) {
 
   response.cookies.set(AUTH_COOKIE_NAME, createAuthCookieValue(result.session), {
     httpOnly: true,
+    maxAge: 60 * 60 * 24 * 365,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/"

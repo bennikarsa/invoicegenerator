@@ -192,6 +192,18 @@ export function GenerateInvoice() {
     );
   }
 
+  function resetInvoiceForm() {
+    setCustomerId("");
+    setBookId("");
+    setShippingId("");
+    setTanggal(todayInputValue());
+    setDiscountType("nominal");
+    setDiscountValue("0");
+    setItems([]);
+    setLastInvoiceNumber("");
+    setEditingInvoiceId("");
+  }
+
   async function saveInvoice(status: "draft" | "sent") {
     setIsSaving(true);
     setError("");
@@ -409,6 +421,10 @@ export function GenerateInvoice() {
       {sharePayload ? (
         <ShareInvoiceDialog
           invoiceNumber={sharePayload.invoiceNumber}
+          onComplete={() => {
+            resetInvoiceForm();
+            setMessage("Invoice selesai diproses. Form dan preview sudah dikosongkan.");
+          }}
           onClose={() => setSharePayload(null)}
           phone={sharePayload.phone}
           text={sharePayload.text}
