@@ -3,8 +3,9 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import type { BookBase, Customer, DiscountType, InvoiceDetailForRole, InvoiceSettings, Shipping } from "@/types";
-import { buildInvoiceText, buildWhatsAppUrl, calculateInvoiceTotal, formatRupiah } from "@/lib/invoice";
+import { buildInvoiceText, calculateInvoiceTotal, formatRupiah } from "@/lib/invoice";
 import { DEFAULT_SETTINGS } from "@/lib/settings";
+import { ShareInvoiceDialog } from "@/components/share-invoice-dialog";
 
 type LookupResponse<TName extends string, TData> =
   | ({ ok: true } & Record<TName, TData>)
@@ -32,6 +33,12 @@ type DraftItem = {
   harga_komunitas_snapshot: number;
 };
 
+type SharePayload = {
+  invoiceNumber: string;
+  phone: string;
+  text: string;
+};
+
 function todayInputValue() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -53,6 +60,7 @@ export function GenerateInvoice() {
   const [isSaving, setIsSaving] = useState(false);
   const [lastInvoiceNumber, setLastInvoiceNumber] = useState("");
   const [editingInvoiceId, setEditingInvoiceId] = useState("");
+  const [sharePayload, setSharePayload] = useState<SharePayload | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -230,8 +238,12 @@ export function GenerateInvoice() {
         discountType: result.invoice.diskon_type,
         discountValue: result.invoice.diskon_value
       });
-      window.open(buildWhatsAppUrl(result.invoice.customer.phone, text), "_blank", "noopener,noreferrer");
-      setMessage("Invoice tersimpan sebagai sent dan WhatsApp dibuka.");
+      setSharePayload({
+        invoiceNumber: result.invoice.invoice_number,
+        phone: result.invoice.customer.phone,
+        text
+      });
+      setMessage("Invoice tersimpan sebagai sent. Pilih cara kirim invoice.");
       return;
     }
 
@@ -376,7 +388,7 @@ export function GenerateInvoice() {
             onClick={() => saveInvoice("sent")}
             type="button"
           >
-            Kirim via WA
+            Kirim
           </button>
         </div>
       </form>
@@ -394,6 +406,14 @@ export function GenerateInvoice() {
           {previewText || "Pilih pembeli dan buku untuk melihat preview invoice."}
         </pre>
       </aside>
+      {sharePayload ? (
+        <ShareInvoiceDialog
+          invoiceNumber={sharePayload.invoiceNumber}
+          onClose={() => setSharePayload(null)}
+          phone={sharePayload.phone}
+          text={sharePayload.text}
+        />
+      ) : null}
     </div>
   );
 }

@@ -4,8 +4,9 @@ import { Fragment, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
 import type { InvoiceDetailForRole, InvoiceSettings, InvoiceStatus, UserRole } from "@/types";
-import { buildInvoiceText, buildWhatsAppUrl, calculateInvoiceTotal, formatRupiah } from "@/lib/invoice";
+import { buildInvoiceText, calculateInvoiceTotal, formatRupiah } from "@/lib/invoice";
 import { DEFAULT_SETTINGS } from "@/lib/settings";
+import { ShareInvoiceDialog } from "@/components/share-invoice-dialog";
 
 type InvoicesResponse =
   | {
@@ -33,6 +34,12 @@ type InvoicesListProps = {
   status: InvoiceStatus;
 };
 
+type SharePayload = {
+  invoiceNumber: string;
+  phone: string;
+  text: string;
+};
+
 function isOldDraft(invoice: InvoiceDetailForRole) {
   const createdAt = new Date(invoice.created_at).getTime();
   const threeDays = 3 * 24 * 60 * 60 * 1000;
@@ -47,6 +54,7 @@ export function InvoicesList({ status }: InvoicesListProps) {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [expandedInvoiceId, setExpandedInvoiceId] = useState("");
+  const [sharePayload, setSharePayload] = useState<SharePayload | null>(null);
 
   const fetchInvoices = useCallback(
     async (searchValue: string) => {
@@ -96,16 +104,8 @@ export function InvoicesList({ status }: InvoicesListProps) {
     await fetchInvoices(search);
   }
 
-  async function openWhatsApp(invoiceId: string) {
-    const response = await fetch(`/api/invoices/${invoiceId}`);
-    const result = (await response.json()) as InvoiceDetailResponse;
-
-    if (!result.ok) {
-      setError(result.message);
-      return;
-    }
-
-    const text = buildInvoiceText({
+  function buildTextFromDetail(result: Extract<InvoiceDetailResponse, { ok: true }>) {
+    return buildInvoiceText({
       invoiceNumber: result.invoice.invoice_number,
       customer: result.invoice.customer,
       settings: result.settings ?? DEFAULT_SETTINGS,
@@ -114,8 +114,22 @@ export function InvoicesList({ status }: InvoicesListProps) {
       discountType: result.invoice.diskon_type,
       discountValue: result.invoice.diskon_value
     });
+  }
 
-    window.open(buildWhatsAppUrl(result.invoice.customer.phone, text), "_blank", "noopener,noreferrer");
+  async function openShareOptions(invoiceId: string) {
+    const response = await fetch(`/api/invoices/${invoiceId}`);
+    const result = (await response.json()) as InvoiceDetailResponse;
+
+    if (!result.ok) {
+      setError(result.message);
+      return;
+    }
+
+    setSharePayload({
+      invoiceNumber: result.invoice.invoice_number,
+      phone: result.invoice.customer.phone,
+      text: buildTextFromDetail(result)
+    });
   }
 
   async function copyText(invoiceId: string) {
@@ -127,17 +141,7 @@ export function InvoicesList({ status }: InvoicesListProps) {
       return;
     }
 
-    const text = buildInvoiceText({
-      invoiceNumber: result.invoice.invoice_number,
-      customer: result.invoice.customer,
-      settings: result.settings ?? DEFAULT_SETTINGS,
-      items: result.invoice.items,
-      shipping: result.invoice.shipping,
-      discountType: result.invoice.diskon_type,
-      discountValue: result.invoice.diskon_value
-    });
-
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(buildTextFromDetail(result));
     setMessage("Teks invoice berhasil disalin.");
   }
 
@@ -236,10 +240,10 @@ export function InvoicesList({ status }: InvoicesListProps) {
                     </button>
                     <button
                       className="rounded-md border border-slate-300 px-2 py-2 text-xs font-medium hover:bg-slate-100"
-                      onClick={() => openWhatsApp(invoice.id)}
+                      onClick={() => openShareOptions(invoice.id)}
                       type="button"
                     >
-                      WA
+                      Kirim
                     </button>
                   </div>
                   {status === "draft" ? (
@@ -315,10 +319,10 @@ export function InvoicesList({ status }: InvoicesListProps) {
                           </button>
                           <button
                             className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium hover:bg-slate-100"
-                            onClick={() => openWhatsApp(invoice.id)}
+                            onClick={() => openShareOptions(invoice.id)}
                             type="button"
                           >
-                            WA
+                            Kirim
                           </button>
                           {status === "draft" ? (
                             <>
@@ -392,6 +396,14 @@ export function InvoicesList({ status }: InvoicesListProps) {
           </>
         ) : null}
       </div>
+      {sharePayload ? (
+        <ShareInvoiceDialog
+          invoiceNumber={sharePayload.invoiceNumber}
+          onClose={() => setSharePayload(null)}
+          phone={sharePayload.phone}
+          text={sharePayload.text}
+        />
+      ) : null}
     </section>
   );
 }
