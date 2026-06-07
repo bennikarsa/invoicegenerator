@@ -1,9 +1,20 @@
 import type { Metadata } from "next";
+import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Gerai FLP Invoice",
-  description: "Aplikasi invoice internal Gerai FLP"
+  description: "Aplikasi invoice internal Gerai FLP",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icons/icon.svg",
+    apple: "/icons/icon.svg"
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Gerai FLP Invoice",
+    statusBarStyle: "default"
+  }
 };
 
 export default function RootLayout({
@@ -13,7 +24,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body>{children}</body>
+      <body>
+        <ServiceWorkerRegister />
+        {children}
+      </body>
     </html>
   );
 }

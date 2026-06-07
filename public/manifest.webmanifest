@@ -1,0 +1,19 @@
+{
+  "name": "Gerai FLP Invoice App",
+  "short_name": "FLP Invoice",
+  "description": "Aplikasi invoice internal Gerai FLP",
+  "start_url": "/generate",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f766e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
