@@ -173,8 +173,98 @@ export function InvoicesList({ status }: InvoicesListProps) {
           </p>
         ) : null}
         {invoices.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-sm">
+          <>
+          <div className="space-y-3 md:hidden">
+            {invoices.map((invoice) => {
+              const totals = calculateInvoiceTotal({
+                items: invoice.items,
+                shipping: invoice.shipping,
+                discountType: invoice.diskon_type,
+                discountValue: invoice.diskon_value
+              });
+
+              return (
+                <article className="rounded-md border border-slate-200 p-3" key={invoice.id}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="break-words font-semibold text-ink">{invoice.invoice_number}</div>
+                      <div className="mt-1 text-sm text-slate-600">{invoice.customer.name}</div>
+                      {status === "draft" && isOldDraft(invoice) ? (
+                        <div className="mt-1 text-xs font-medium text-amber-700">Draft lama</div>
+                      ) : null}
+                    </div>
+                    <div className="shrink-0 text-right text-sm font-semibold text-slate-800">
+                      {formatRupiah(totals.total)}
+                    </div>
+                  </div>
+                  <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                    <dt className="text-slate-500">Tanggal</dt>
+                    <dd className="text-right text-slate-800">{invoice.tanggal}</dd>
+                    <dt className="text-slate-500">Diskon</dt>
+                    <dd className="text-right text-slate-800">- {formatRupiah(totals.discount)}</dd>
+                  </dl>
+                  {expandedInvoiceId === invoice.id ? (
+                    <div className="mt-3 rounded-md bg-slate-50 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Rincian Buku</p>
+                      <div className="mt-2 space-y-2">
+                        {invoice.items.map((item) => (
+                          <div className="grid grid-cols-[minmax(0,1fr)_44px_96px] gap-2 text-sm" key={item.id}>
+                            <span className="min-w-0 break-words font-medium text-ink">{item.title}</span>
+                            <span className="text-right text-slate-600">x{item.qty}</span>
+                            <span className="text-right text-slate-700">
+                              {formatRupiah(item.harga_jual_snapshot * item.qty)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    <button
+                      className="rounded-md border border-slate-300 px-2 py-2 text-xs font-medium hover:bg-slate-100"
+                      onClick={() => copyText(invoice.id)}
+                      type="button"
+                    >
+                      Salin
+                    </button>
+                    <button
+                      className="rounded-md border border-slate-300 px-2 py-2 text-xs font-medium hover:bg-slate-100"
+                      onClick={() => setExpandedInvoiceId((current) => (current === invoice.id ? "" : invoice.id))}
+                      type="button"
+                    >
+                      Detail
+                    </button>
+                    <button
+                      className="rounded-md border border-slate-300 px-2 py-2 text-xs font-medium hover:bg-slate-100"
+                      onClick={() => openWhatsApp(invoice.id)}
+                      type="button"
+                    >
+                      WA
+                    </button>
+                  </div>
+                  {status === "draft" ? (
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      <Link
+                        className="rounded-md border border-slate-300 px-2 py-2 text-center text-xs font-medium hover:bg-slate-100"
+                        href={`/generate?draftId=${invoice.id}`}
+                      >
+                        Edit
+                      </Link>
+                      <button
+                        className="rounded-md border border-red-200 px-2 py-2 text-xs font-medium text-red-700 hover:bg-red-50"
+                        onClick={() => deleteDraft(invoice)}
+                        type="button"
+                      >
+                        Hapus
+                      </button>
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })}
+          </div>
+          <div className="hidden md:block">
+            <table className="w-full table-fixed text-left text-sm">
               <thead className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
                   <th className="py-3 pr-4 font-semibold">Invoice</th>
@@ -299,6 +389,7 @@ export function InvoicesList({ status }: InvoicesListProps) {
               </tbody>
             </table>
           </div>
+          </>
         ) : null}
       </div>
     </section>

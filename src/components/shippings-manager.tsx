@@ -216,8 +216,33 @@ export function ShippingsManager() {
             </p>
           ) : null}
           {shippings.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[520px] text-left text-sm">
+            <>
+            <div className="space-y-3 md:hidden">
+              {shippings.map((shipping) => (
+                <article className="rounded-md border border-slate-200 p-3" key={shipping.id}>
+                  <div className="font-semibold text-ink">{shipping.ekspedisi}</div>
+                  <div className="mt-2 text-sm text-slate-700">{formatRupiah(shipping.tarif)}</div>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-xs font-medium hover:bg-slate-100"
+                      onClick={() => startEdit(shipping)}
+                      type="button"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="flex-1 rounded-md border border-red-200 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-50"
+                      onClick={() => handleDelete(shipping)}
+                      type="button"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <div className="hidden md:block">
+              <table className="w-full table-fixed text-left text-sm">
                 <thead className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
                   <tr>
                     <th className="py-3 pr-4 font-semibold">Ekspedisi</th>
@@ -228,7 +253,7 @@ export function ShippingsManager() {
                 <tbody className="divide-y divide-slate-100">
                   {shippings.map((shipping) => (
                     <tr key={shipping.id}>
-                      <td className="py-3 pr-4 font-medium text-ink">{shipping.ekspedisi}</td>
+                      <td className="break-words py-3 pr-4 font-medium text-ink">{shipping.ekspedisi}</td>
                       <td className="py-3 pr-4 text-slate-700">{formatRupiah(shipping.tarif)}</td>
                       <td className="py-3">
                         <div className="flex justify-end gap-2">
@@ -253,6 +278,7 @@ export function ShippingsManager() {
                 </tbody>
               </table>
             </div>
+            </>
           ) : null}
         </div>
       </section>

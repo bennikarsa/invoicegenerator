@@ -260,8 +260,44 @@ export function BooksManager() {
             </p>
           ) : null}
           {books.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] text-left text-sm">
+            <>
+            <div className="space-y-3 md:hidden">
+              {books.map((book) => (
+                <article className="rounded-md border border-slate-200 p-3" key={book.id}>
+                  <div className="font-semibold text-ink">{book.title}</div>
+                  <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                    {isAdmin && hasAdminPrice(book) ? (
+                      <>
+                        <dt className="text-slate-500">Harga Dasar</dt>
+                        <dd className="text-right font-medium text-slate-800">{formatRupiah(book.harga_modal)}</dd>
+                      </>
+                    ) : null}
+                    <dt className="text-slate-500">Harga Komunitas</dt>
+                    <dd className="text-right font-medium text-slate-800">{formatRupiah(book.harga_komunitas)}</dd>
+                    <dt className="text-slate-500">Harga Jual</dt>
+                    <dd className="text-right font-medium text-slate-800">{formatRupiah(book.harga_jual)}</dd>
+                  </dl>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-xs font-medium hover:bg-slate-100"
+                      onClick={() => startEdit(book)}
+                      type="button"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="flex-1 rounded-md border border-red-200 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-50"
+                      onClick={() => handleDelete(book)}
+                      type="button"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <div className="hidden md:block">
+              <table className="w-full table-fixed text-left text-sm">
                 <thead className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
                   <tr>
                     <th className="py-3 pr-4 font-semibold">Judul</th>
@@ -274,7 +310,7 @@ export function BooksManager() {
                 <tbody className="divide-y divide-slate-100">
                   {books.map((book) => (
                     <tr key={book.id}>
-                      <td className="py-3 pr-4 font-medium text-ink">{book.title}</td>
+                      <td className="break-words py-3 pr-4 font-medium text-ink">{book.title}</td>
                       {isAdmin && hasAdminPrice(book) ? (
                         <td className="py-3 pr-4 text-slate-700">{formatRupiah(book.harga_modal)}</td>
                       ) : null}
@@ -303,6 +339,7 @@ export function BooksManager() {
                 </tbody>
               </table>
             </div>
+            </>
           ) : null}
         </div>
       </section>
