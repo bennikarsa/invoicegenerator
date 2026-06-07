@@ -110,8 +110,10 @@ export function DashboardShell({
           </aside>
         </div>
       ) : null}
-      <main className="lg:pl-64">
-        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">{children}</div>
+      <main className="min-w-0 lg:pl-64">
+        <div className="mx-auto max-w-6xl px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-6 sm:px-6 lg:px-8">
+          {children}
+        </div>
       </main>
     </div>
   );

@@ -244,8 +244,8 @@ export function GenerateInvoice() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
-      <form className="space-y-5 rounded-md border border-slate-200 bg-white p-5 shadow-sm" onSubmit={handleSubmit}>
+    <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
+      <form className="min-w-0 space-y-5 rounded-md border border-slate-200 bg-white p-4 shadow-sm sm:p-5" onSubmit={handleSubmit}>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
             <span className="text-sm font-medium text-slate-700">Tanggal</span>
@@ -275,10 +275,10 @@ export function GenerateInvoice() {
           </label>
         </div>
 
-        <div className="rounded-md border border-slate-200 p-4">
-          <div className="flex gap-2">
+        <div className="min-w-0 rounded-md border border-slate-200 p-3 sm:p-4">
+          <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
             <select
-              className="min-w-0 flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm"
               onChange={(event) => setBookId(event.target.value)}
               value={bookId}
             >
@@ -295,8 +295,8 @@ export function GenerateInvoice() {
           </div>
           <div className="mt-4 space-y-2">
             {items.map((item) => (
-              <div className="grid grid-cols-[1fr_88px_32px] items-center gap-2 text-sm" key={item.book_id}>
-                <span className="font-medium text-ink">{item.title}</span>
+              <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_76px_32px] items-center gap-2 text-sm sm:grid-cols-[minmax(0,1fr)_88px_32px]" key={item.book_id}>
+                <span className="min-w-0 truncate font-medium text-ink">{item.title}</span>
                 <input
                   className="rounded-md border border-slate-300 px-2 py-1 text-sm"
                   min="1"
@@ -381,7 +381,7 @@ export function GenerateInvoice() {
         </div>
       </form>
 
-      <aside className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+      <aside className="min-w-0 rounded-md border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
         <div className="mb-4 grid grid-cols-2 gap-2 text-sm">
           <span className="text-slate-500">Subtotal</span>
           <span className="text-right font-medium">{formatRupiah(totals.subtotal + totals.shippingCost)}</span>
@@ -390,7 +390,7 @@ export function GenerateInvoice() {
           <span className="text-slate-500">Total</span>
           <span className="text-right font-bold">{formatRupiah(totals.total)}</span>
         </div>
-        <pre className="min-h-[480px] whitespace-pre-wrap rounded-md bg-slate-950 p-4 text-xs leading-5 text-slate-50">
+        <pre className="min-h-[360px] max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-md bg-slate-950 p-4 text-xs leading-5 text-slate-50 sm:min-h-[480px]">
           {previewText || "Pilih pembeli dan buku untuk melihat preview invoice."}
         </pre>
       </aside>
