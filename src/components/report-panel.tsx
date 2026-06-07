@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 
 import type { InvoiceDetailForRole, UserRole } from "@/types";
 import { calculateSafeReportTotals } from "@/lib/invoices";
@@ -17,28 +17,72 @@ type ReportResponse =
       message: string;
     };
 
-function todayInputValue() {
-  return new Date().toISOString().slice(0, 10);
+function padDatePart(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+function todayDisplayValue() {
+  const now = new Date();
+
+  return `${padDatePart(now.getDate())}/${padDatePart(now.getMonth() + 1)}/${now.getFullYear()}`;
+}
+
+function normalizeDateDisplay(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 8);
+  const day = digits.slice(0, 2);
+  const month = digits.slice(2, 4);
+  const year = digits.slice(4, 8);
+
+  return [day, month, year].filter(Boolean).join("/");
+}
+
+function displayDateToIso(value: string) {
+  const [day, month, year] = value.split("/");
+
+  if (!day || !month || !year || day.length !== 2 || month.length !== 2 || year.length !== 4) {
+    return null;
+  }
+
+  const date = new Date(Number(year), Number(month) - 1, Number(day));
+  const isValid =
+    date.getFullYear() === Number(year) &&
+    date.getMonth() === Number(month) - 1 &&
+    date.getDate() === Number(day);
+
+  if (!isValid) {
+    return null;
+  }
+
+  return `${year}-${month}-${day}`;
 }
 
 export function ReportPanel() {
-  const [dateFrom, setDateFrom] = useState(todayInputValue());
-  const [dateTo, setDateTo] = useState(todayInputValue());
+  const [dateFrom, setDateFrom] = useState(todayDisplayValue());
+  const [dateTo, setDateTo] = useState(todayDisplayValue());
   const [role, setRole] = useState<UserRole | null>(null);
   const [invoices, setInvoices] = useState<InvoiceDetailForRole[]>([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const totals = calculateSafeReportTotals(invoices, role ?? "komunitas");
 
-  async function loadReport(event?: FormEvent<HTMLFormElement>) {
+  const loadReport = useCallback(async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
+    const dateFromIso = displayDateToIso(dateFrom);
+    const dateToIso = displayDateToIso(dateTo);
+
+    if (!dateFromIso || !dateToIso) {
+      setInvoices([]);
+      setError("Format tanggal harus DD/MM/YYYY.");
+      return;
+    }
+
     setIsLoading(true);
     setError("");
 
     const params = new URLSearchParams({
       status: "sent",
-      date_from: dateFrom,
-      date_to: dateTo
+      date_from: dateFromIso,
+      date_to: dateToIso
     });
     const response = await fetch(`/api/invoices?${params.toString()}`);
     const result = (await response.json()) as ReportResponse;
@@ -51,34 +95,54 @@ export function ReportPanel() {
     }
 
     setIsLoading(false);
-  }
+  }, [dateFrom, dateTo]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      loadReport();
+    }, 250);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [loadReport]);
 
   return (
     <section className="space-y-5">
-      <form className="flex flex-wrap items-end gap-3 rounded-md border border-slate-200 bg-white p-4 shadow-sm" onSubmit={loadReport}>
-        <label className="block">
+      <form
+        className="grid gap-3 rounded-md border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-2 lg:grid-cols-[180px_180px_auto_auto]"
+        onSubmit={loadReport}
+      >
+        <label className="block min-w-0">
           <span className="text-sm font-medium text-slate-700">Dari</span>
           <input
-            className="mt-1 rounded-md border border-slate-300 px-3 py-2 text-sm"
-            onChange={(event) => setDateFrom(event.target.value)}
-            type="date"
+            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+            inputMode="numeric"
+            maxLength={10}
+            onChange={(event) => setDateFrom(normalizeDateDisplay(event.target.value))}
+            placeholder="DD/MM/YYYY"
+            type="text"
             value={dateFrom}
           />
         </label>
-        <label className="block">
+        <label className="block min-w-0">
           <span className="text-sm font-medium text-slate-700">Sampai</span>
           <input
-            className="mt-1 rounded-md border border-slate-300 px-3 py-2 text-sm"
-            onChange={(event) => setDateTo(event.target.value)}
-            type="date"
+            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+            inputMode="numeric"
+            maxLength={10}
+            onChange={(event) => setDateTo(normalizeDateDisplay(event.target.value))}
+            placeholder="DD/MM/YYYY"
+            type="text"
             value={dateTo}
           />
         </label>
-        <button className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white" type="submit">
-          Tampilkan
+        <button
+          className="h-10 rounded-md bg-brand px-4 text-sm font-semibold text-white hover:bg-teal-800 sm:self-end"
+          type="submit"
+        >
+          Refresh
         </button>
         <button
-          className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700"
+          className="h-10 rounded-md border border-slate-300 px-4 text-sm font-medium text-slate-700 hover:bg-slate-100 sm:self-end"
           onClick={() => window.print()}
           type="button"
         >
@@ -104,10 +168,6 @@ export function ReportPanel() {
           <p className="text-sm text-slate-500">Invoice Sent</p>
           <p className="mt-2 text-xl font-bold text-ink">{invoices.length}</p>
         </div>
-      </div>
-      <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
-        Profit komunitas dan profit teman di bawah ini belum mengurangi diskon, karena aturan alokasi diskon ke profit
-        perlu diputuskan dulu agar laporan tidak salah.
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
