@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { AUTH_SESSION_KEY, type LoginResult } from "@/lib/auth";
+import { APP_CONFIG } from "@/lib/app-config";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,7 +41,7 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-paper px-4">
       <section className="w-full max-w-sm rounded-md border border-slate-200 bg-white p-6 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-wide text-brand">Gerai FLP</p>
+        <p className="text-sm font-semibold uppercase tracking-wide text-brand">{APP_CONFIG.brandName}</p>
         <h1 className="mt-1 text-2xl font-bold text-ink">Login</h1>
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <label className="block">

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
+import { APP_CONFIG, APP_TITLE } from "@/lib/app-config";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Gerai FLP Invoice",
-  description: "Aplikasi invoice internal Gerai FLP",
+  title: APP_TITLE,
+  description: APP_CONFIG.description,
   manifest: "/manifest.webmanifest",
   icons: {
     icon: "/icons/icon.svg",
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "Gerai FLP Invoice",
+    title: APP_TITLE,
     statusBarStyle: "default"
   }
 };

@@ -1,9 +1,10 @@
 import type { InvoiceSettings } from "@/types";
+import { APP_CONFIG } from "@/lib/app-config";
 
 export const DEFAULT_SETTINGS: InvoiceSettings = {
   header_text: "INVOICE WAR FLP BATCH 17",
   footer_text: "Silahkan transfer ke rekening",
-  nama_pengirim: "GERAI FLP",
+  nama_pengirim: APP_CONFIG.brandName.toUpperCase(),
   hp_pengirim: "",
   rekening: ""
 };

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import type { AuthSession } from "@/lib/auth";
+import { APP_CONFIG } from "@/lib/app-config";
 import { LogoutButton } from "@/components/logout-button";
 
 const navigation = [
@@ -33,8 +34,8 @@ export function DashboardShell({
     <>
       <div className="flex h-16 items-center justify-between px-5">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-brand">Gerai FLP</p>
-          <h1 className="text-lg font-bold">Invoice App</h1>
+          <p className="text-sm font-semibold uppercase tracking-wide text-brand">{APP_CONFIG.brandName}</p>
+          <h1 className="text-lg font-bold">{APP_CONFIG.appName}</h1>
         </div>
         <button
           aria-label="Tutup menu"
@@ -78,8 +79,8 @@ export function DashboardShell({
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white lg:hidden">
         <div className="flex h-16 items-center justify-between px-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand">Gerai FLP</p>
-            <h1 className="text-base font-bold">Invoice App</h1>
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand">{APP_CONFIG.brandName}</p>
+            <h1 className="text-base font-bold">{APP_CONFIG.appName}</h1>
           </div>
           <button
             aria-expanded={isMenuOpen}
