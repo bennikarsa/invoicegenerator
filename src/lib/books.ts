@@ -4,7 +4,11 @@ export type AdminBookInput = Pick<AdminBook, "title" | "harga_modal" | "harga_ko
 export type PublicBookInput = Pick<AdminBook, "title" | "harga_komunitas" | "harga_jual">;
 
 function parsePrice(value: unknown) {
-  const parsed = typeof value === "number" ? value : typeof value === "string" ? Number(value) : Number.NaN;
+  const normalized =
+    typeof value === "string"
+      ? value.trim().replace(/[^\d-]/g, "")
+      : value;
+  const parsed = typeof normalized === "number" ? normalized : typeof normalized === "string" ? Number(normalized) : Number.NaN;
   return Number.isFinite(parsed) ? Math.floor(parsed) : Number.NaN;
 }
 

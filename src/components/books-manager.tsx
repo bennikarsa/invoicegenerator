@@ -5,6 +5,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import type { AdminBook, BookBase, UserRole } from "@/types";
 import { AUTH_SESSION_KEY, parseAuthSession } from "@/lib/auth";
 import { formatRupiah } from "@/lib/invoice";
+import { BulkCsvImport } from "@/components/bulk-csv-import";
 
 type BookRow = BookBase | AdminBook;
 
@@ -158,76 +159,88 @@ export function BooksManager() {
   }
 
   const isAdmin = role === "admin";
+  const bookTemplateColumns = isAdmin
+    ? ["Judul", "Harga Dasar", "Harga Komunitas", "Harga Jual"]
+    : ["Judul", "Harga Komunitas", "Harga Jual"];
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,380px)_1fr]">
       {role ? (
-        <form className="space-y-4 rounded-md border border-slate-200 bg-white p-5 shadow-sm" onSubmit={handleSubmit}>
-          <h3 className="text-base font-semibold text-ink">{editingBook ? "Edit Buku" : "Tambah Buku"}</h3>
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Judul</span>
-            <input
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
-              onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
-              required
-              type="text"
-              value={form.title}
-            />
-          </label>
-          {isAdmin ? (
+        <div className="space-y-6">
+          <form className="space-y-4 rounded-md border border-slate-200 bg-white p-5 shadow-sm" onSubmit={handleSubmit}>
+            <h3 className="text-base font-semibold text-ink">{editingBook ? "Edit Buku" : "Tambah Buku"}</h3>
             <label className="block">
-              <span className="text-sm font-medium text-slate-700">Harga Dasar</span>
+              <span className="text-sm font-medium text-slate-700">Judul</span>
+              <input
+                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
+                required
+                type="text"
+                value={form.title}
+              />
+            </label>
+            {isAdmin ? (
+              <label className="block">
+                <span className="text-sm font-medium text-slate-700">Harga Dasar</span>
+                <input
+                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                  min="0"
+                  onChange={(event) => setForm((current) => ({ ...current, harga_modal: event.target.value }))}
+                  required
+                  type="number"
+                  value={form.harga_modal}
+                />
+              </label>
+            ) : null}
+            <label className="block">
+              <span className="text-sm font-medium text-slate-700">Harga Komunitas</span>
               <input
                 className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                 min="0"
-                onChange={(event) => setForm((current) => ({ ...current, harga_modal: event.target.value }))}
+                onChange={(event) => setForm((current) => ({ ...current, harga_komunitas: event.target.value }))}
                 required
                 type="number"
-                value={form.harga_modal}
+                value={form.harga_komunitas}
               />
             </label>
-          ) : null}
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Harga Komunitas</span>
-            <input
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
-              min="0"
-              onChange={(event) => setForm((current) => ({ ...current, harga_komunitas: event.target.value }))}
-              required
-              type="number"
-              value={form.harga_komunitas}
-            />
-          </label>
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Harga Jual</span>
-            <input
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
-              min="0"
-              onChange={(event) => setForm((current) => ({ ...current, harga_jual: event.target.value }))}
-              required
-              type="number"
-              value={form.harga_jual}
-            />
-          </label>
-          <div className="flex gap-2">
-            <button
-              className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={isSaving}
-              type="submit"
-            >
-              {isSaving ? "Menyimpan..." : editingBook ? "Simpan Perubahan" : "Tambah"}
-            </button>
-            {editingBook ? (
+            <label className="block">
+              <span className="text-sm font-medium text-slate-700">Harga Jual</span>
+              <input
+                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                min="0"
+                onChange={(event) => setForm((current) => ({ ...current, harga_jual: event.target.value }))}
+                required
+                type="number"
+                value={form.harga_jual}
+              />
+            </label>
+            <div className="flex gap-2">
               <button
-                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
-                onClick={cancelEdit}
-                type="button"
+                className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isSaving}
+                type="submit"
               >
-                Batal
+                {isSaving ? "Menyimpan..." : editingBook ? "Simpan Perubahan" : "Tambah"}
               </button>
-            ) : null}
-          </div>
-        </form>
+              {editingBook ? (
+                <button
+                  className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                  onClick={cancelEdit}
+                  type="button"
+                >
+                  Batal
+                </button>
+              ) : null}
+            </div>
+          </form>
+          <BulkCsvImport
+            description="Upload CSV dengan kolom Judul, Harga Komunitas, dan Harga Jual. Admin juga bisa memakai kolom Harga Dasar."
+            endpoint="/api/books/bulk"
+            onImported={() => fetchBooks(search)}
+            templateColumns={bookTemplateColumns}
+            title="Import Buku dari CSV"
+          />
+        </div>
       ) : (
         <aside className="rounded-md border border-slate-200 bg-white p-5 text-sm leading-6 text-slate-600 shadow-sm">
           Memeriksa role login...
