@@ -142,7 +142,7 @@ export function GenerateInvoice() {
     }
 
     return buildInvoiceText({
-      invoiceNumber: lastInvoiceNumber || "FLP/YYMM/XXX",
+      invoiceNumber: lastInvoiceNumber || "INVYYMMXXX",
       customer: selectedCustomer,
       settings,
       items,

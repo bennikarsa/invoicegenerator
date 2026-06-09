@@ -150,7 +150,7 @@ export function getInvoiceMonthCode(date: Date) {
 }
 
 export function formatInvoiceNumber(monthCode: string, sequence: number) {
-  return `FLP/${monthCode}/${String(sequence).padStart(3, "0")}`;
+  return `INV${monthCode}${String(sequence).padStart(3, "0")}`;
 }
 
 export function createInvoiceMessage(

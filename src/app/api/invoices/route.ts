@@ -103,7 +103,7 @@ export async function GET(request: Request) {
 
 async function getNextInvoiceNumber(supabase: ReturnType<typeof createSupabaseClient>, tanggal: string) {
   const monthCode = getInvoiceMonthCode(new Date(tanggal));
-  const prefix = `FLP/${monthCode}/`;
+  const prefix = `INV${monthCode}`;
   const { data, error } = await supabase
     .from("invoices")
     .select("invoice_number")
@@ -116,7 +116,7 @@ async function getNextInvoiceNumber(supabase: ReturnType<typeof createSupabaseCl
   }
 
   const latest = data?.[0]?.invoice_number;
-  const latestSequence = latest ? Number(latest.split("/").at(-1)) : 0;
+  const latestSequence = latest ? Number(latest.slice(prefix.length)) : 0;
 
   return formatInvoiceNumber(monthCode, Number.isFinite(latestSequence) ? latestSequence + 1 : 1);
 }
