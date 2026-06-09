@@ -171,12 +171,12 @@ export function ReportPanel() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-sm text-slate-500">Profit Komunitas Sebelum Diskon</p>
+          <p className="text-sm text-slate-500">Profit Awal Sebelum Diskon</p>
           <p className="mt-2 text-xl font-bold text-ink">{formatRupiah(totals.communityProfitBeforeDiscount)}</p>
         </div>
         {role === "admin" ? (
           <div className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-sm text-slate-500">Profit Teman Sebelum Diskon</p>
+            <p className="text-sm text-slate-500">Profit Akhir Sebelum Diskon</p>
             <p className="mt-2 text-xl font-bold text-ink">{formatRupiah(totals.adminProfit)}</p>
           </div>
         ) : null}
