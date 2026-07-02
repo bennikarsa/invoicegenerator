@@ -60,8 +60,10 @@ export function GenerateInvoice() {
   const [settings, setSettings] = useState<InvoiceSettings>(DEFAULT_SETTINGS);
   const [customerId, setCustomerId] = useState("");
   const [customerSearch, setCustomerSearch] = useState("");
+  const [isCustomerSearchOpen, setIsCustomerSearchOpen] = useState(false);
   const [bookId, setBookId] = useState("");
   const [bookSearch, setBookSearch] = useState("");
+  const [isBookSearchOpen, setIsBookSearchOpen] = useState(false);
   const [shippingId, setShippingId] = useState("");
   const [tanggal, setTanggal] = useState(todayInputValue());
   const [discountType, setDiscountType] = useState<DiscountType>("nominal");
@@ -146,28 +148,7 @@ export function GenerateInvoice() {
   }, []);
 
   const selectedCustomer = customers.find((customer) => customer.id === customerId) ?? null;
-  const selectedBook = books.find((book) => book.id === bookId) ?? null;
   const selectedShipping = shippings.find((shipping) => shipping.id === shippingId) ?? null;
-  const filteredCustomers = useMemo(() => {
-    const matchingCustomers = customers.filter((customer) =>
-      matchesSearch([customer.name, customer.phone, customer.address], customerSearch)
-    );
-
-    if (selectedCustomer && !matchingCustomers.some((customer) => customer.id === selectedCustomer.id)) {
-      return [selectedCustomer, ...matchingCustomers];
-    }
-
-    return matchingCustomers;
-  }, [customerSearch, customers, selectedCustomer]);
-  const filteredBooks = useMemo(() => {
-    const matchingBooks = books.filter((book) => matchesSearch([book.title], bookSearch));
-
-    if (selectedBook && !matchingBooks.some((book) => book.id === selectedBook.id)) {
-      return [selectedBook, ...matchingBooks];
-    }
-
-    return matchingBooks;
-  }, [bookSearch, books, selectedBook]);
   const customerSearchResults = useMemo(() => {
     if (!customerSearch.trim()) {
       return [];
@@ -330,97 +311,161 @@ export function GenerateInvoice() {
               value={tanggal}
             />
           </label>
-          <div className="block">
+          <div className="relative block">
             <span className="text-sm font-medium text-slate-700">Pembeli</span>
-            <input
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-              onChange={(event) => setCustomerSearch(event.target.value)}
-              placeholder="Cari nama, HP, atau alamat"
-              type="search"
-              value={customerSearch}
-            />
-            {customerSearch.trim() ? (
-              <div className="mt-2 max-h-48 overflow-y-auto rounded-md border border-slate-200 bg-white shadow-sm">
-                {customerSearchResults.length > 0 ? (
-                  customerSearchResults.map((customer) => (
-                    <button
-                      className="block w-full px-3 py-2 text-left text-sm hover:bg-slate-100"
-                      key={customer.id}
-                      onClick={() => {
-                        setCustomerId(customer.id);
-                        setCustomerSearch(customer.name);
-                      }}
-                      type="button"
-                    >
-                      <span className="block font-medium text-ink">{customer.name}</span>
-                      <span className="block truncate text-xs text-slate-500">{customer.phone}</span>
-                    </button>
-                  ))
-                ) : (
-                  <p className="px-3 py-2 text-sm text-slate-500">Pembeli tidak ditemukan.</p>
-                )}
+            <div className="mt-1 grid grid-cols-[minmax(0,1fr)_44px] gap-2">
+              <select
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                onChange={(event) => setCustomerId(event.target.value)}
+                required
+                value={customerId}
+              >
+                <option value="">Pilih pembeli</option>
+                {customers.map((customer) => (
+                  <option key={customer.id} value={customer.id}>
+                    {customer.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                aria-label="Cari pembeli"
+                className="flex h-10 w-11 items-center justify-center rounded-md border border-slate-300 text-xl leading-none hover:bg-slate-100"
+                onClick={() => {
+                  setIsCustomerSearchOpen((current) => !current);
+                  setCustomerSearch("");
+                }}
+                type="button"
+              >
+                🔍
+              </button>
+            </div>
+            {isCustomerSearchOpen ? (
+              <div className="absolute left-0 right-0 z-20 mt-2 rounded-md border border-slate-200 bg-white p-3 shadow-lg">
+                <div className="grid grid-cols-[minmax(0,1fr)_32px] gap-2">
+                  <input
+                    autoFocus
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    onChange={(event) => setCustomerSearch(event.target.value)}
+                    placeholder="Cari nama, HP, atau alamat"
+                    type="search"
+                    value={customerSearch}
+                  />
+                  <button
+                    aria-label="Tutup pencarian pembeli"
+                    className="rounded-md border border-slate-300 text-sm font-semibold hover:bg-slate-100"
+                    onClick={() => setIsCustomerSearchOpen(false)}
+                    type="button"
+                  >
+                    X
+                  </button>
+                </div>
+                <div className="mt-2 max-h-48 overflow-y-auto rounded-md border border-slate-100">
+                  {customerSearch.trim() ? (
+                    customerSearchResults.length > 0 ? (
+                      customerSearchResults.map((customer) => (
+                        <button
+                          className="block w-full px-3 py-2 text-left text-sm hover:bg-slate-100"
+                          key={customer.id}
+                          onClick={() => {
+                            setCustomerId(customer.id);
+                            setCustomerSearch("");
+                            setIsCustomerSearchOpen(false);
+                          }}
+                          type="button"
+                        >
+                          <span className="block font-medium text-ink">{customer.name}</span>
+                          <span className="block truncate text-xs text-slate-500">{customer.phone}</span>
+                        </button>
+                      ))
+                    ) : (
+                      <p className="px-3 py-2 text-sm text-slate-500">Pembeli tidak ditemukan.</p>
+                    )
+                  ) : (
+                    <p className="px-3 py-2 text-sm text-slate-500">Ketik kata kunci pembeli.</p>
+                  )}
+                </div>
               </div>
             ) : null}
-            <select
-              className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-              onChange={(event) => setCustomerId(event.target.value)}
-              required
-              value={customerId}
-            >
-              <option value="">Pilih pembeli</option>
-              {filteredCustomers.map((customer) => (
-                <option key={customer.id} value={customer.id}>
-                  {customer.name}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
 
         <div className="min-w-0 rounded-md border border-slate-200 p-3 sm:p-4">
           <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
             <div className="min-w-0 space-y-2">
-              <input
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                onChange={(event) => setBookSearch(event.target.value)}
-                placeholder="Cari judul buku"
-                type="search"
-                value={bookSearch}
-              />
-              {bookSearch.trim() ? (
-                <div className="max-h-56 overflow-y-auto rounded-md border border-slate-200 bg-white shadow-sm">
-                  {bookSearchResults.length > 0 ? (
-                    bookSearchResults.map((book) => (
+              <div className="relative">
+                <div className="grid grid-cols-[minmax(0,1fr)_44px] gap-2">
+                  <select
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    onChange={(event) => setBookId(event.target.value)}
+                    value={bookId}
+                  >
+                    <option value="">Pilih buku</option>
+                    {books.map((book) => (
+                      <option key={book.id} value={book.id}>
+                        {book.title} - {formatRupiah(book.harga_jual)}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    aria-label="Cari buku"
+                    className="flex h-10 w-11 items-center justify-center rounded-md border border-slate-300 text-xl leading-none hover:bg-slate-100"
+                    onClick={() => {
+                      setIsBookSearchOpen((current) => !current);
+                      setBookSearch("");
+                    }}
+                    type="button"
+                  >
+                    🔍
+                  </button>
+                </div>
+                {isBookSearchOpen ? (
+                  <div className="absolute left-0 right-0 z-20 mt-2 rounded-md border border-slate-200 bg-white p-3 shadow-lg">
+                    <div className="grid grid-cols-[minmax(0,1fr)_32px] gap-2">
+                      <input
+                        autoFocus
+                        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                        onChange={(event) => setBookSearch(event.target.value)}
+                        placeholder="Cari judul buku"
+                        type="search"
+                        value={bookSearch}
+                      />
                       <button
-                        className="block w-full px-3 py-2 text-left text-sm hover:bg-slate-100"
-                        key={book.id}
-                        onClick={() => {
-                          setBookId(book.id);
-                          setBookSearch(book.title);
-                        }}
+                        aria-label="Tutup pencarian buku"
+                        className="rounded-md border border-slate-300 text-sm font-semibold hover:bg-slate-100"
+                        onClick={() => setIsBookSearchOpen(false)}
                         type="button"
                       >
-                        <span className="block font-medium text-ink">{book.title}</span>
-                        <span className="block text-xs text-slate-500">{formatRupiah(book.harga_jual)}</span>
+                        X
                       </button>
-                    ))
-                  ) : (
-                    <p className="px-3 py-2 text-sm text-slate-500">Buku tidak ditemukan.</p>
-                  )}
-                </div>
-              ) : null}
-              <select
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                onChange={(event) => setBookId(event.target.value)}
-                value={bookId}
-              >
-                <option value="">Pilih buku</option>
-                {filteredBooks.map((book) => (
-                  <option key={book.id} value={book.id}>
-                    {book.title} - {formatRupiah(book.harga_jual)}
-                  </option>
-                ))}
-              </select>
+                    </div>
+                    <div className="mt-2 max-h-56 overflow-y-auto rounded-md border border-slate-100">
+                      {bookSearch.trim() ? (
+                        bookSearchResults.length > 0 ? (
+                          bookSearchResults.map((book) => (
+                            <button
+                              className="block w-full px-3 py-2 text-left text-sm hover:bg-slate-100"
+                              key={book.id}
+                              onClick={() => {
+                                setBookId(book.id);
+                                setBookSearch("");
+                                setIsBookSearchOpen(false);
+                              }}
+                              type="button"
+                            >
+                              <span className="block font-medium text-ink">{book.title}</span>
+                              <span className="block text-xs text-slate-500">{formatRupiah(book.harga_jual)}</span>
+                            </button>
+                          ))
+                        ) : (
+                          <p className="px-3 py-2 text-sm text-slate-500">Buku tidak ditemukan.</p>
+                        )
+                      ) : (
+                        <p className="px-3 py-2 text-sm text-slate-500">Ketik judul buku.</p>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </div>
             <button className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium sm:self-end" onClick={addBook} type="button">
               Tambah
