@@ -151,7 +151,7 @@ export function SettingsForm() {
               <textarea
                 className="mt-1 min-h-24 w-full rounded-md border border-slate-300 px-3 py-2 text-sm leading-6 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                 onChange={(event) => updateField(field.key, event.target.value)}
-                required
+                required={field.key !== "rekening"}
                 value={settings[field.key]}
               />
             ) : (

@@ -50,12 +50,13 @@ export function sanitizeSettings(input: Partial<Record<SettingsKey, unknown>>) {
 }
 
 export function validateSettings(settings: InvoiceSettings) {
-  const missingFields = SETTINGS_KEYS.filter((key) => !settings[key]);
+  const requiredKeys = SETTINGS_KEYS.filter((key) => key !== "rekening");
+  const missingFields = requiredKeys.filter((key) => !settings[key]);
 
   if (missingFields.length > 0) {
     return {
       ok: false,
-      message: "Semua field setting wajib diisi."
+      message: "Header, footer, nama pengirim, dan no HP pengirim wajib diisi."
     };
   }
 
