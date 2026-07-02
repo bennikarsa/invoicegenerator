@@ -91,6 +91,7 @@ No HP: ${input.settings.hp_pengirim}
 
 Penerima: ${input.customer.name}
 Alamat: ${input.customer.address}
+No HP: ${input.customer.phone}
 
 Rincian Pesanan:
 ${itemLines}
