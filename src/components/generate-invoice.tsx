@@ -168,6 +168,22 @@ export function GenerateInvoice() {
 
     return matchingBooks;
   }, [bookSearch, books, selectedBook]);
+  const customerSearchResults = useMemo(() => {
+    if (!customerSearch.trim()) {
+      return [];
+    }
+
+    return customers
+      .filter((customer) => matchesSearch([customer.name, customer.phone, customer.address], customerSearch))
+      .slice(0, 8);
+  }, [customerSearch, customers]);
+  const bookSearchResults = useMemo(() => {
+    if (!bookSearch.trim()) {
+      return [];
+    }
+
+    return books.filter((book) => matchesSearch([book.title], bookSearch)).slice(0, 8);
+  }, [bookSearch, books]);
   const discountNumber = Number(discountValue || 0);
   const previewText = useMemo(() => {
     if (!selectedCustomer) {
@@ -314,7 +330,7 @@ export function GenerateInvoice() {
               value={tanggal}
             />
           </label>
-          <label className="block">
+          <div className="block">
             <span className="text-sm font-medium text-slate-700">Pembeli</span>
             <input
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
@@ -323,6 +339,28 @@ export function GenerateInvoice() {
               type="search"
               value={customerSearch}
             />
+            {customerSearch.trim() ? (
+              <div className="mt-2 max-h-48 overflow-y-auto rounded-md border border-slate-200 bg-white shadow-sm">
+                {customerSearchResults.length > 0 ? (
+                  customerSearchResults.map((customer) => (
+                    <button
+                      className="block w-full px-3 py-2 text-left text-sm hover:bg-slate-100"
+                      key={customer.id}
+                      onClick={() => {
+                        setCustomerId(customer.id);
+                        setCustomerSearch(customer.name);
+                      }}
+                      type="button"
+                    >
+                      <span className="block font-medium text-ink">{customer.name}</span>
+                      <span className="block truncate text-xs text-slate-500">{customer.phone}</span>
+                    </button>
+                  ))
+                ) : (
+                  <p className="px-3 py-2 text-sm text-slate-500">Pembeli tidak ditemukan.</p>
+                )}
+              </div>
+            ) : null}
             <select
               className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
               onChange={(event) => setCustomerId(event.target.value)}
@@ -336,7 +374,7 @@ export function GenerateInvoice() {
                 </option>
               ))}
             </select>
-          </label>
+          </div>
         </div>
 
         <div className="min-w-0 rounded-md border border-slate-200 p-3 sm:p-4">
@@ -349,6 +387,28 @@ export function GenerateInvoice() {
                 type="search"
                 value={bookSearch}
               />
+              {bookSearch.trim() ? (
+                <div className="max-h-56 overflow-y-auto rounded-md border border-slate-200 bg-white shadow-sm">
+                  {bookSearchResults.length > 0 ? (
+                    bookSearchResults.map((book) => (
+                      <button
+                        className="block w-full px-3 py-2 text-left text-sm hover:bg-slate-100"
+                        key={book.id}
+                        onClick={() => {
+                          setBookId(book.id);
+                          setBookSearch(book.title);
+                        }}
+                        type="button"
+                      >
+                        <span className="block font-medium text-ink">{book.title}</span>
+                        <span className="block text-xs text-slate-500">{formatRupiah(book.harga_jual)}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <p className="px-3 py-2 text-sm text-slate-500">Buku tidak ditemukan.</p>
+                  )}
+                </div>
+              ) : null}
               <select
                 className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
                 onChange={(event) => setBookId(event.target.value)}
