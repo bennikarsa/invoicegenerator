@@ -82,10 +82,10 @@ export function buildWhatsAppUrl(phone: string, text: string) {
 export function buildInvoiceText(input: InvoiceDraftInput) {
   const totals = calculateInvoiceTotal(input);
   const itemLines = input.items
-    .map((item) => `${item.title}${item.qty > 1 ? ` x${item.qty}` : ""} ${formatInvoiceAmount(item.harga_jual_snapshot * item.qty)}`)
+    .map((item) => `- ${item.title}${item.qty > 1 ? ` x${item.qty}` : ""} ${formatInvoiceAmount(item.harga_jual_snapshot * item.qty)}`)
     .join("\n");
   const shippingLine = input.shipping
-    ? `Ongkir ${input.shipping.ekspedisi} ${formatInvoiceAmount(input.shipping.tarif)}\n`
+    ? `- Ongkir ${input.shipping.ekspedisi} ${formatInvoiceAmount(input.shipping.tarif)}\n`
     : "";
   const discountLine = totals.discount > 0 ? `Diskon: - ${formatInvoiceAmount(totals.discount)}\n` : "";
   const footerLine = [input.settings.footer_text, input.settings.rekening].filter(Boolean).join(" ");
