@@ -90,7 +90,7 @@ export function buildInvoiceText(input: InvoiceDraftInput) {
   const discountLine = totals.discount > 0 ? `Diskon: - ${formatInvoiceAmount(totals.discount)}\n` : "";
   const footerLine = [input.settings.footer_text, input.settings.rekening].filter(Boolean).join(" ");
   const paymentInstruction = footerLine
-    ? `${footerLine}${/[.!?]$/.test(footerLine) ? "" : "."} Mohon sertakan bukti transfernya`
+    ? `${footerLine} Mohon sertakan bukti transfernya`
     : "Mohon sertakan bukti transfernya";
 
   return `*${input.settings.header_text}*
@@ -105,7 +105,7 @@ Rincian Pesanan:
 ${itemLines}
 ${shippingLine}----------------------------------
 Subtotal: ${formatInvoiceAmount(totals.subtotal + totals.shippingCost)}
-${discountLine}Total Tagihan: Rp${formatInvoiceAmount(totals.total)}
+${discountLine}\`Total Tagihan: Rp${formatInvoiceAmount(totals.total)}\`
 
 ${paymentInstruction}`;
 }

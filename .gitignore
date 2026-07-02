@@ -10,5 +10,5 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 tsconfig.tsbuildinfo
-AGENT_WARNINGS_INVOICE_APP.md
+AGENTS.md
 PRD_INVOICE_GENERATOR.md
