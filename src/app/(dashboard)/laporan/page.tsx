@@ -6,7 +6,7 @@ export default function LaporanPage() {
     <>
       <PageHeader
         title="Laporan"
-        description="Laporan penjualan dan keuntungan berdasarkan invoice sent dalam rentang tanggal."
+        description="Laporan penjualan dan keuntungan berdasarkan invoice done dalam rentang tanggal."
       />
       <ReportPanel />
     </>

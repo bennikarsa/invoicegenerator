@@ -29,7 +29,7 @@ export type Shipping = {
   created_at: string;
 };
 
-export type InvoiceStatus = "draft" | "sent";
+export type InvoiceStatus = "draft" | "sent" | "done" | "void";
 export type DiscountType = "persen" | "nominal";
 
 export type Invoice = {

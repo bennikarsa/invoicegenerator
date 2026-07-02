@@ -15,6 +15,8 @@ import { createSupabaseClient } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
+const invoiceStatuses = ["draft", "sent", "done", "void"] as const;
+
 function unauthorizedResponse() {
   return NextResponse.json({ ok: false, message: "Session login tidak valid." }, { status: 401 });
 }
@@ -48,7 +50,9 @@ export async function GET(request: Request) {
       .select(getInvoiceSelect(session.role))
       .order("created_at", { ascending: false });
 
-    if (status === "draft" || status === "sent") {
+    if (status === "history") {
+      query = query.in("status", ["sent", "done", "void"]);
+    } else if (invoiceStatuses.includes(status as (typeof invoiceStatuses)[number])) {
       query = query.eq("status", status);
     }
 

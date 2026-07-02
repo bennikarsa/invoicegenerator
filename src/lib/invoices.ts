@@ -3,6 +3,7 @@ import type {
   Customer,
   DiscountType,
   InvoiceDetailForRole,
+  InvoiceStatus,
   InvoiceSettings,
   Shipping,
   UserRole
@@ -33,7 +34,7 @@ export type InvoicePayload = {
   tanggal: string;
   diskon_type: DiscountType;
   diskon_value: number;
-  status: "draft" | "sent";
+  status: InvoiceStatus;
   created_at: string;
   customers: Customer;
   shippings: Shipping | null;

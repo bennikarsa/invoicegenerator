@@ -6,9 +6,9 @@ export default function HistoryPage() {
     <>
       <PageHeader
         title="History Invoice"
-        description="Invoice berstatus sent akan tersimpan di sini untuk detail dan salin ulang teks WhatsApp."
+        description="Invoice sent, done, dan void tersimpan di sini untuk ditandai, dilihat detailnya, dan disalin ulang."
       />
-      <InvoicesList status="sent" />
+      <InvoicesList status="history" />
     </>
   );
 }

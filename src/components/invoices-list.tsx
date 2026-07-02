@@ -30,8 +30,18 @@ type InvoiceDetailResponse =
       message: string;
     };
 
+type InvoiceStatusUpdateResponse =
+  | {
+      ok: true;
+      invoice: InvoiceDetailForRole;
+    }
+  | {
+      ok: false;
+      message: string;
+    };
+
 type InvoicesListProps = {
-  status: InvoiceStatus;
+  status: InvoiceStatus | "history";
 };
 
 type SharePayload = {
@@ -45,6 +55,32 @@ function isOldDraft(invoice: InvoiceDetailForRole) {
   const threeDays = 3 * 24 * 60 * 60 * 1000;
 
   return Date.now() - createdAt > threeDays;
+}
+
+function getStatusLabel(status: InvoiceStatus) {
+  if (status === "done") {
+    return "Done";
+  }
+
+  if (status === "void") {
+    return "Void";
+  }
+
+  return status === "sent" ? "Sent" : "Draft";
+}
+
+function getStatusBadgeClass(status: InvoiceStatus) {
+  if (status === "done") {
+    return "bg-teal-50 text-teal-800 ring-teal-200";
+  }
+
+  if (status === "void") {
+    return "bg-red-50 text-red-700 ring-red-200";
+  }
+
+  return status === "sent"
+    ? "bg-blue-50 text-blue-700 ring-blue-200"
+    : "bg-slate-100 text-slate-700 ring-slate-200";
 }
 
 export function InvoicesList({ status }: InvoicesListProps) {
@@ -145,6 +181,42 @@ export function InvoicesList({ status }: InvoicesListProps) {
     setMessage("Teks invoice berhasil disalin.");
   }
 
+  async function updateInvoiceStatus(invoice: InvoiceDetailForRole, nextStatus: "done" | "void") {
+    const confirmed = window.confirm(
+      nextStatus === "done"
+        ? `Tandai invoice ${invoice.invoice_number} sebagai done?`
+        : `Void invoice ${invoice.invoice_number}? Invoice void tidak masuk laporan.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setError("");
+    setMessage("");
+
+    const response = await fetch(`/api/invoices/${invoice.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ status: nextStatus })
+    });
+    const result = (await response.json()) as InvoiceStatusUpdateResponse;
+
+    if (!result.ok) {
+      setError(result.message);
+      return;
+    }
+
+    setMessage(
+      nextStatus === "done"
+        ? `Invoice ${invoice.invoice_number} ditandai done.`
+        : `Invoice ${invoice.invoice_number} ditandai void.`
+    );
+    await fetchInvoices(search);
+  }
+
   return (
     <section className="rounded-md border border-slate-200 bg-white shadow-sm">
       <div className="border-b border-slate-200 p-4">
@@ -193,6 +265,11 @@ export function InvoicesList({ status }: InvoicesListProps) {
                     <div className="min-w-0">
                       <div className="break-words font-semibold text-ink">{invoice.invoice_number}</div>
                       <div className="mt-1 text-sm text-slate-600">{invoice.customer.name}</div>
+                      <span
+                        className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ${getStatusBadgeClass(invoice.status)}`}
+                      >
+                        {getStatusLabel(invoice.status)}
+                      </span>
                       {status === "draft" && isOldDraft(invoice) ? (
                         <div className="mt-1 text-xs font-medium text-amber-700">Draft lama</div>
                       ) : null}
@@ -223,7 +300,7 @@ export function InvoicesList({ status }: InvoicesListProps) {
                       </div>
                     </div>
                   ) : null}
-                  <div className="mt-3 grid grid-cols-3 gap-2">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     <button
                       className="rounded-md border border-slate-300 px-2 py-2 text-xs font-medium hover:bg-slate-100"
                       onClick={() => copyText(invoice.id)}
@@ -245,6 +322,24 @@ export function InvoicesList({ status }: InvoicesListProps) {
                     >
                       Kirim
                     </button>
+                    {status === "history" && invoice.status === "sent" ? (
+                      <button
+                        className="rounded-md border border-teal-200 px-2 py-2 text-xs font-medium text-teal-700 hover:bg-teal-50"
+                        onClick={() => updateInvoiceStatus(invoice, "done")}
+                        type="button"
+                      >
+                        Done
+                      </button>
+                    ) : null}
+                    {status === "history" && (invoice.status === "sent" || invoice.status === "done") ? (
+                      <button
+                        className="rounded-md border border-red-200 px-2 py-2 text-xs font-medium text-red-700 hover:bg-red-50"
+                        onClick={() => updateInvoiceStatus(invoice, "void")}
+                        type="button"
+                      >
+                        Void
+                      </button>
+                    ) : null}
                   </div>
                   {status === "draft" ? (
                     <div className="mt-2 grid grid-cols-2 gap-2">
@@ -292,6 +387,11 @@ export function InvoicesList({ status }: InvoicesListProps) {
                     <tr>
                       <td className="py-3 pr-4">
                         <div className="font-medium text-ink">{invoice.invoice_number}</div>
+                        <span
+                          className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ${getStatusBadgeClass(invoice.status)}`}
+                        >
+                          {getStatusLabel(invoice.status)}
+                        </span>
                         {status === "draft" && isOldDraft(invoice) ? (
                           <div className="mt-1 text-xs font-medium text-amber-700">Draft lama</div>
                         ) : null}
@@ -300,7 +400,7 @@ export function InvoicesList({ status }: InvoicesListProps) {
                       <td className="py-3 pr-4 text-slate-700">{invoice.tanggal}</td>
                       <td className="py-3 pr-4 font-medium text-slate-800">{formatRupiah(totals.total)}</td>
                       <td className="py-3">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex flex-wrap justify-end gap-2">
                           <button
                             className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium hover:bg-slate-100"
                             onClick={() => copyText(invoice.id)}
@@ -324,6 +424,24 @@ export function InvoicesList({ status }: InvoicesListProps) {
                           >
                             Kirim
                           </button>
+                          {status === "history" && invoice.status === "sent" ? (
+                            <button
+                              className="rounded-md border border-teal-200 px-3 py-1.5 text-xs font-medium text-teal-700 hover:bg-teal-50"
+                              onClick={() => updateInvoiceStatus(invoice, "done")}
+                              type="button"
+                            >
+                              Done
+                            </button>
+                          ) : null}
+                          {status === "history" && (invoice.status === "sent" || invoice.status === "done") ? (
+                            <button
+                              className="rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50"
+                              onClick={() => updateInvoiceStatus(invoice, "void")}
+                              type="button"
+                            >
+                              Void
+                            </button>
+                          ) : null}
                           {status === "draft" ? (
                             <>
                               <Link

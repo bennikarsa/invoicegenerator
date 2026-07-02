@@ -35,9 +35,12 @@ create table if not exists invoices (
   tanggal date not null,
   diskon_type text not null check (diskon_type in ('persen', 'nominal')),
   diskon_value integer not null default 0 check (diskon_value >= 0),
-  status text not null check (status in ('draft', 'sent')),
+  status text not null check (status in ('draft', 'sent', 'done', 'void')),
   created_at timestamp with time zone not null default now()
 );
+
+alter table invoices drop constraint if exists invoices_status_check;
+alter table invoices add constraint invoices_status_check check (status in ('draft', 'sent', 'done', 'void'));
 
 create table if not exists invoice_items (
   id uuid primary key default gen_random_uuid(),

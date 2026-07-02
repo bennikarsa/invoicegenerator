@@ -10,6 +10,7 @@ import {
 import { calculateDiscount } from "@/lib/invoice";
 import { getCurrentAuthSession } from "@/lib/server-auth";
 import { createSupabaseClient } from "@/lib/supabase";
+import type { InvoiceStatus } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -182,6 +183,59 @@ export async function PUT(request: Request, { params }: RouteContext) {
     ok: true,
     invoice: mapInvoicePayload(invoiceData as unknown as InvoicePayload, session.role),
     settings: rowsToSettings(settingsRows ?? [])
+  });
+}
+
+export async function PATCH(request: Request, { params }: RouteContext) {
+  const session = getCurrentAuthSession();
+
+  if (!session) {
+    return unauthorizedResponse();
+  }
+
+  const body = (await request.json().catch(() => null)) as { status?: unknown } | null;
+  const nextStatus = body?.status;
+
+  if (nextStatus !== "done" && nextStatus !== "void") {
+    return NextResponse.json({ ok: false, message: "Status tujuan tidak valid." }, { status: 400 });
+  }
+
+  const supabase = createSupabaseClient();
+  const { data: invoice, error: invoiceError } = await supabase
+    .from("invoices")
+    .select("status")
+    .eq("id", params.id)
+    .single();
+
+  if (invoiceError) {
+    return NextResponse.json({ ok: false, message: invoiceError.message }, { status: 500 });
+  }
+
+  const currentStatus = invoice.status as InvoiceStatus;
+  const canMarkDone = currentStatus === "sent" && nextStatus === "done";
+  const canVoid = (currentStatus === "sent" || currentStatus === "done") && nextStatus === "void";
+
+  if (!canMarkDone && !canVoid) {
+    return NextResponse.json(
+      { ok: false, message: "Perubahan status invoice tidak diizinkan." },
+      { status: 400 }
+    );
+  }
+
+  const { data, error } = await supabase
+    .from("invoices")
+    .update({ status: nextStatus })
+    .eq("id", params.id)
+    .select(getInvoiceSelect(session.role))
+    .single();
+
+  if (error) {
+    return NextResponse.json({ ok: false, message: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({
+    ok: true,
+    invoice: mapInvoicePayload(data as unknown as InvoicePayload, session.role)
   });
 }
 

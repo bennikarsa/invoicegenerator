@@ -80,7 +80,7 @@ export function ReportPanel() {
     setError("");
 
     const params = new URLSearchParams({
-      status: "sent",
+      status: "done",
       date_from: dateFromIso,
       date_to: dateToIso
     });
@@ -165,7 +165,7 @@ export function ReportPanel() {
           <p className="mt-2 text-xl font-bold text-ink">{formatRupiah(totals.discountTotal)}</p>
         </div>
         <div className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-sm text-slate-500">Invoice Sent</p>
+          <p className="text-sm text-slate-500">Invoice Done</p>
           <p className="mt-2 text-xl font-bold text-ink">{invoices.length}</p>
         </div>
       </div>
