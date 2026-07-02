@@ -43,13 +43,25 @@ function todayInputValue() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function matchesSearch(values: string[], search: string) {
+  const query = search.trim().toLowerCase();
+
+  if (!query) {
+    return true;
+  }
+
+  return values.some((value) => value.toLowerCase().includes(query));
+}
+
 export function GenerateInvoice() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [books, setBooks] = useState<BookBase[]>([]);
   const [shippings, setShippings] = useState<Shipping[]>([]);
   const [settings, setSettings] = useState<InvoiceSettings>(DEFAULT_SETTINGS);
   const [customerId, setCustomerId] = useState("");
+  const [customerSearch, setCustomerSearch] = useState("");
   const [bookId, setBookId] = useState("");
+  const [bookSearch, setBookSearch] = useState("");
   const [shippingId, setShippingId] = useState("");
   const [tanggal, setTanggal] = useState(todayInputValue());
   const [discountType, setDiscountType] = useState<DiscountType>("nominal");
@@ -134,7 +146,28 @@ export function GenerateInvoice() {
   }, []);
 
   const selectedCustomer = customers.find((customer) => customer.id === customerId) ?? null;
+  const selectedBook = books.find((book) => book.id === bookId) ?? null;
   const selectedShipping = shippings.find((shipping) => shipping.id === shippingId) ?? null;
+  const filteredCustomers = useMemo(() => {
+    const matchingCustomers = customers.filter((customer) =>
+      matchesSearch([customer.name, customer.phone, customer.address], customerSearch)
+    );
+
+    if (selectedCustomer && !matchingCustomers.some((customer) => customer.id === selectedCustomer.id)) {
+      return [selectedCustomer, ...matchingCustomers];
+    }
+
+    return matchingCustomers;
+  }, [customerSearch, customers, selectedCustomer]);
+  const filteredBooks = useMemo(() => {
+    const matchingBooks = books.filter((book) => matchesSearch([book.title], bookSearch));
+
+    if (selectedBook && !matchingBooks.some((book) => book.id === selectedBook.id)) {
+      return [selectedBook, ...matchingBooks];
+    }
+
+    return matchingBooks;
+  }, [bookSearch, books, selectedBook]);
   const discountNumber = Number(discountValue || 0);
   const previewText = useMemo(() => {
     if (!selectedCustomer) {
@@ -283,14 +316,21 @@ export function GenerateInvoice() {
           </label>
           <label className="block">
             <span className="text-sm font-medium text-slate-700">Pembeli</span>
-            <select
+            <input
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              onChange={(event) => setCustomerSearch(event.target.value)}
+              placeholder="Cari nama, HP, atau alamat"
+              type="search"
+              value={customerSearch}
+            />
+            <select
+              className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
               onChange={(event) => setCustomerId(event.target.value)}
               required
               value={customerId}
             >
               <option value="">Pilih pembeli</option>
-              {customers.map((customer) => (
+              {filteredCustomers.map((customer) => (
                 <option key={customer.id} value={customer.id}>
                   {customer.name}
                 </option>
@@ -301,19 +341,28 @@ export function GenerateInvoice() {
 
         <div className="min-w-0 rounded-md border border-slate-200 p-3 sm:p-4">
           <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-            <select
-              className="min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm"
-              onChange={(event) => setBookId(event.target.value)}
-              value={bookId}
-            >
-              <option value="">Pilih buku</option>
-              {books.map((book) => (
-                <option key={book.id} value={book.id}>
-                  {book.title} - {formatRupiah(book.harga_jual)}
-                </option>
-              ))}
-            </select>
-            <button className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium" onClick={addBook} type="button">
+            <div className="min-w-0 space-y-2">
+              <input
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                onChange={(event) => setBookSearch(event.target.value)}
+                placeholder="Cari judul buku"
+                type="search"
+                value={bookSearch}
+              />
+              <select
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                onChange={(event) => setBookId(event.target.value)}
+                value={bookId}
+              >
+                <option value="">Pilih buku</option>
+                {filteredBooks.map((book) => (
+                  <option key={book.id} value={book.id}>
+                    {book.title} - {formatRupiah(book.harga_jual)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium sm:self-end" onClick={addBook} type="button">
               Tambah
             </button>
           </div>
