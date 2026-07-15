@@ -75,17 +75,17 @@ export function DashboardShell({
   );
 
   return (
-    <div className="min-h-screen bg-paper text-ink">
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white lg:hidden">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#ecfdf5_0,#f8fafc_230px)] text-ink">
+      <header className="sticky top-0 z-30 border-b border-teal-900/10 bg-white/95 shadow-sm backdrop-blur lg:hidden">
         <div className="flex h-16 items-center justify-between px-4">
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-wide text-brand">{APP_CONFIG.brandName}</p>
-            <h1 className="text-base font-bold">{APP_CONFIG.appName}</h1>
+            <h1 className="truncate text-base font-bold">{APP_CONFIG.appName}</h1>
           </div>
           <button
             aria-expanded={isMenuOpen}
             aria-label="Buka menu"
-            className="flex h-10 w-10 flex-col items-center justify-center gap-1.5 rounded-md border border-slate-300"
+            className="flex h-10 w-10 shrink-0 flex-col items-center justify-center gap-1.5 rounded-md border border-teal-700/20 bg-teal-50 text-brand shadow-sm"
             onClick={() => setIsMenuOpen(true)}
             type="button"
           >
@@ -112,7 +112,7 @@ export function DashboardShell({
         </div>
       ) : null}
       <main className="min-w-0 lg:pl-64">
-        <div className="mx-auto max-w-6xl px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-6 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-3 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-5 sm:px-6 lg:px-8">
           {children}
         </div>
       </main>

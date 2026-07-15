@@ -339,8 +339,8 @@ export function GenerateInvoice() {
   }
 
   return (
-    <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
-      <form className="min-w-0 space-y-5 rounded-md border border-slate-200 bg-white p-4 shadow-sm sm:p-5" onSubmit={handleSubmit}>
+    <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_420px] lg:gap-6">
+      <form className="min-w-0 space-y-4 rounded-md border border-slate-200 bg-white p-4 shadow-sm sm:space-y-5 sm:p-5" onSubmit={handleSubmit}>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
             <span className="text-sm font-medium text-slate-700">Tanggal</span>
@@ -370,7 +370,7 @@ export function GenerateInvoice() {
               </select>
               <button
                 aria-label="Cari pembeli"
-                className="flex h-10 w-11 items-center justify-center rounded-md border border-slate-300 text-xl leading-none hover:bg-slate-100"
+                className="flex h-10 w-11 items-center justify-center rounded-md border border-teal-700/20 bg-teal-50 text-xl leading-none text-brand shadow-sm hover:bg-teal-100"
                 onClick={() => {
                   setIsCustomerSearchOpen((current) => !current);
                   setCustomerSearch("");
@@ -381,7 +381,7 @@ export function GenerateInvoice() {
               </button>
             </div>
             {isCustomerSearchOpen ? (
-              <div className="absolute left-0 right-0 z-20 mt-2 rounded-md border border-slate-200 bg-white p-3 shadow-lg">
+              <div className="absolute left-0 right-0 z-20 mt-2 rounded-md border border-slate-200 bg-white p-3 shadow-xl">
                 <div className="grid grid-cols-[minmax(0,1fr)_32px] gap-2">
                   <input
                     autoFocus
@@ -430,7 +430,7 @@ export function GenerateInvoice() {
           </div>
         </div>
 
-        <div className="min-w-0 rounded-md border border-slate-200 p-3 sm:p-4">
+        <div className="min-w-0 rounded-md border border-slate-200 bg-slate-50/70 p-3 sm:p-4">
           <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
             <div className="min-w-0 space-y-2">
               <div className="relative">
@@ -449,7 +449,7 @@ export function GenerateInvoice() {
                   </select>
                   <button
                     aria-label="Cari buku"
-                    className="flex h-10 w-11 items-center justify-center rounded-md border border-slate-300 text-xl leading-none hover:bg-slate-100"
+                    className="flex h-10 w-11 items-center justify-center rounded-md border border-teal-700/20 bg-teal-50 text-xl leading-none text-brand shadow-sm hover:bg-teal-100"
                     onClick={() => {
                       setIsBookSearchOpen((current) => !current);
                       setBookSearch("");
@@ -460,7 +460,7 @@ export function GenerateInvoice() {
                   </button>
                 </div>
                 {isBookSearchOpen ? (
-                  <div className="absolute left-0 right-0 z-20 mt-2 rounded-md border border-slate-200 bg-white p-3 shadow-lg">
+                  <div className="absolute left-0 right-0 z-20 mt-2 rounded-md border border-slate-200 bg-white p-3 shadow-xl">
                     <div className="grid grid-cols-[minmax(0,1fr)_32px] gap-2">
                       <input
                         autoFocus
@@ -508,7 +508,7 @@ export function GenerateInvoice() {
                 ) : null}
               </div>
             </div>
-            <button className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium sm:self-end" onClick={addBook} type="button">
+            <button className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium shadow-sm hover:bg-slate-100 sm:self-end" onClick={addBook} type="button">
               Tambah
             </button>
           </div>
@@ -524,7 +524,7 @@ export function GenerateInvoice() {
                   value={item.qty}
                 />
                 <button
-                  className="rounded-md border border-red-200 px-2 py-1 text-xs text-red-700"
+                  className="rounded-md border border-red-200 bg-white px-2 py-1 text-xs text-red-700 hover:bg-red-50"
                   onClick={() => setItems((current) => current.filter((candidate) => candidate.book_id !== item.book_id))}
                   type="button"
                 >
@@ -535,7 +535,7 @@ export function GenerateInvoice() {
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 rounded-md border border-slate-200 bg-white p-3 sm:grid-cols-2 sm:border-0 sm:p-0">
           <label className="block">
             <span className="text-sm font-medium text-slate-700">Ongkir</span>
             <select
@@ -553,7 +553,7 @@ export function GenerateInvoice() {
           </label>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 rounded-md border border-slate-200 bg-white p-3 sm:grid-cols-3 sm:border-0 sm:p-0">
           <label className="block">
             <span className="text-sm font-medium text-slate-700">Nama Diskon 1</span>
             <input
@@ -587,7 +587,7 @@ export function GenerateInvoice() {
           </label>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 rounded-md border border-slate-200 bg-white p-3 sm:grid-cols-3 sm:border-0 sm:p-0">
           <label className="block">
             <span className="text-sm font-medium text-slate-700">Nama Diskon 2</span>
             <input
@@ -623,21 +623,21 @@ export function GenerateInvoice() {
 
         {error ? <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
         {message ? <p className="rounded-md bg-teal-50 px-3 py-2 text-sm text-teal-800">{message}</p> : null}
-        <div className="flex flex-wrap gap-2">
+        <div className="grid gap-2 sm:flex sm:flex-wrap">
           {editingInvoiceId ? (
             <span className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700">
               Edit {lastInvoiceNumber}
             </span>
           ) : null}
           <button
-            className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-60 sm:py-2"
             disabled={isSaving}
             type="submit"
           >
             Simpan Draft
           </button>
           <button
-            className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-60 sm:py-2"
             disabled={isSaving}
             onClick={() => saveInvoice("sent")}
             type="button"
@@ -647,7 +647,7 @@ export function GenerateInvoice() {
         </div>
       </form>
 
-      <aside className="min-w-0 rounded-md border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <aside className="min-w-0 rounded-md border border-slate-200 bg-white p-4 shadow-sm sm:p-5 lg:sticky lg:top-6 lg:self-start">
         <div className="mb-4 grid grid-cols-2 gap-2 text-sm">
           <span className="text-slate-500">Subtotal Produk</span>
           <span className="text-right font-medium">{formatRupiah(totals.subtotal)}</span>
