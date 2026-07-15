@@ -148,7 +148,11 @@ export function InvoicesList({ status }: InvoicesListProps) {
       items: result.invoice.items,
       shipping: result.invoice.shipping,
       discountType: result.invoice.diskon_type,
-      discountValue: result.invoice.diskon_value
+      discountValue: result.invoice.diskon_value,
+      discountLabel: result.invoice.diskon_label,
+      discount2Type: result.invoice.diskon_2_type,
+      discount2Value: result.invoice.diskon_2_value,
+      discount2Label: result.invoice.diskon_2_label
     });
   }
 
@@ -256,7 +260,11 @@ export function InvoicesList({ status }: InvoicesListProps) {
                 items: invoice.items,
                 shipping: invoice.shipping,
                 discountType: invoice.diskon_type,
-                discountValue: invoice.diskon_value
+                discountValue: invoice.diskon_value,
+                discountLabel: invoice.diskon_label,
+                discount2Type: invoice.diskon_2_type,
+                discount2Value: invoice.diskon_2_value,
+                discount2Label: invoice.diskon_2_label
               });
 
               return (
@@ -379,7 +387,11 @@ export function InvoicesList({ status }: InvoicesListProps) {
                     items: invoice.items,
                     shipping: invoice.shipping,
                     discountType: invoice.diskon_type,
-                    discountValue: invoice.diskon_value
+                    discountValue: invoice.diskon_value,
+                    discountLabel: invoice.diskon_label,
+                    discount2Type: invoice.diskon_2_type,
+                    discount2Value: invoice.diskon_2_value,
+                    discount2Label: invoice.diskon_2_label
                   });
 
                   return (

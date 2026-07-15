@@ -40,6 +40,10 @@ export type Invoice = {
   tanggal: string;
   diskon_type: DiscountType;
   diskon_value: number;
+  diskon_label: string;
+  diskon_2_type: DiscountType;
+  diskon_2_value: number;
+  diskon_2_label: string;
   status: InvoiceStatus;
   created_at: string;
 };

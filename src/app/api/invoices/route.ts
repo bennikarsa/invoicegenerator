@@ -9,7 +9,7 @@ import {
   validateInvoiceSaveInput,
   type InvoicePayload
 } from "@/lib/invoices";
-import { calculateDiscount } from "@/lib/invoice";
+import { calculateInvoiceDiscounts } from "@/lib/invoice";
 import { getCurrentAuthSession } from "@/lib/server-auth";
 import { createSupabaseClient } from "@/lib/supabase";
 
@@ -27,7 +27,7 @@ function getInvoiceSelect(role: "admin" | "komunitas") {
       ? "id,invoice_id,book_id,qty,harga_jual_snapshot,harga_komunitas_snapshot,harga_modal_snapshot,books(title)"
       : "id,invoice_id,book_id,qty,harga_jual_snapshot,harga_komunitas_snapshot,books(title)";
 
-  return `id,invoice_number,customer_id,shipping_id,tanggal,diskon_type,diskon_value,status,created_at,customers(id,name,phone,address,created_at),shippings(id,ekspedisi,tarif,created_at),invoice_items(${itemColumns})`;
+  return `id,invoice_number,customer_id,shipping_id,tanggal,diskon_type,diskon_value,diskon_label,diskon_2_type,diskon_2_value,diskon_2_label,status,created_at,customers(id,name,phone,address,created_at),shippings(id,ekspedisi,tarif,created_at),invoice_items(${itemColumns})`;
 }
 
 export async function GET(request: Request) {
@@ -133,7 +133,20 @@ export async function POST(request: Request) {
   }
 
   const body = (await request.json().catch(() => null)) as Partial<
-    Record<"customer_id" | "shipping_id" | "tanggal" | "diskon_type" | "diskon_value" | "status" | "items", unknown>
+    Record<
+      | "customer_id"
+      | "shipping_id"
+      | "tanggal"
+      | "diskon_type"
+      | "diskon_value"
+      | "diskon_label"
+      | "diskon_2_type"
+      | "diskon_2_value"
+      | "diskon_2_label"
+      | "status"
+      | "items",
+      unknown
+    >
   > | null;
   const input = sanitizeInvoiceSaveInput(body ?? {});
   const validation = validateInvoiceSaveInput(input);
@@ -178,9 +191,16 @@ export async function POST(request: Request) {
       (total, item) => total + item.harga_jual_snapshot * item.qty,
       0
     );
-    const discount = calculateDiscount(subtotal, input.diskon_type, input.diskon_value);
+    const { totalDiscount } = calculateInvoiceDiscounts(subtotal, {
+      discountType: input.diskon_type,
+      discountValue: input.diskon_value,
+      discountLabel: input.diskon_label,
+      discount2Type: input.diskon_2_type,
+      discount2Value: input.diskon_2_value,
+      discount2Label: input.diskon_2_label
+    });
 
-    if (discount > subtotal) {
+    if (totalDiscount > subtotal) {
       return NextResponse.json({ ok: false, message: "Diskon tidak boleh melebihi subtotal buku." }, { status: 400 });
     }
 
@@ -198,6 +218,10 @@ export async function POST(request: Request) {
           tanggal: input.tanggal,
           diskon_type: input.diskon_type,
           diskon_value: input.diskon_value,
+          diskon_label: input.diskon_label,
+          diskon_2_type: input.diskon_2_type,
+          diskon_2_value: input.diskon_2_value,
+          diskon_2_label: input.diskon_2_label,
           status: input.status
         })
         .select("id")

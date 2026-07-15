@@ -68,6 +68,10 @@ export function GenerateInvoice() {
   const [tanggal, setTanggal] = useState(todayInputValue());
   const [discountType, setDiscountType] = useState<DiscountType>("nominal");
   const [discountValue, setDiscountValue] = useState("0");
+  const [discountLabel, setDiscountLabel] = useState("Diskon");
+  const [discount2Type, setDiscount2Type] = useState<DiscountType>("nominal");
+  const [discount2Value, setDiscount2Value] = useState("0");
+  const [discount2Label, setDiscount2Label] = useState("Diskon 2");
   const [items, setItems] = useState<DraftItem[]>([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -131,6 +135,10 @@ export function GenerateInvoice() {
       setTanggal(invoiceResult.invoice.tanggal);
       setDiscountType(invoiceResult.invoice.diskon_type);
       setDiscountValue(String(invoiceResult.invoice.diskon_value));
+      setDiscountLabel(invoiceResult.invoice.diskon_label);
+      setDiscount2Type(invoiceResult.invoice.diskon_2_type);
+      setDiscount2Value(String(invoiceResult.invoice.diskon_2_value));
+      setDiscount2Label(invoiceResult.invoice.diskon_2_label);
       setSettings(invoiceResult.settings);
       setItems(
         invoiceResult.invoice.items.map((item) => ({
@@ -166,6 +174,7 @@ export function GenerateInvoice() {
     return books.filter((book) => matchesSearch([book.title], bookSearch)).slice(0, 8);
   }, [bookSearch, books]);
   const discountNumber = Number(discountValue || 0);
+  const discount2Number = Number(discount2Value || 0);
   const previewText = useMemo(() => {
     if (!selectedCustomer) {
       return "";
@@ -178,14 +187,34 @@ export function GenerateInvoice() {
       items,
       shipping: selectedShipping,
       discountType,
-      discountValue: Number.isFinite(discountNumber) ? discountNumber : 0
+      discountValue: Number.isFinite(discountNumber) ? discountNumber : 0,
+      discountLabel,
+      discount2Type,
+      discount2Value: Number.isFinite(discount2Number) ? discount2Number : 0,
+      discount2Label
     });
-  }, [discountNumber, discountType, items, lastInvoiceNumber, selectedCustomer, selectedShipping, settings]);
+  }, [
+    discount2Label,
+    discount2Number,
+    discount2Type,
+    discountLabel,
+    discountNumber,
+    discountType,
+    items,
+    lastInvoiceNumber,
+    selectedCustomer,
+    selectedShipping,
+    settings
+  ]);
   const totals = calculateInvoiceTotal({
     items,
     shipping: selectedShipping,
     discountType,
-    discountValue: Number.isFinite(discountNumber) ? discountNumber : 0
+    discountValue: Number.isFinite(discountNumber) ? discountNumber : 0,
+    discountLabel,
+    discount2Type,
+    discount2Value: Number.isFinite(discount2Number) ? discount2Number : 0,
+    discount2Label
   });
 
   function addBook() {
@@ -229,6 +258,10 @@ export function GenerateInvoice() {
     setTanggal(todayInputValue());
     setDiscountType("nominal");
     setDiscountValue("0");
+    setDiscountLabel("Diskon");
+    setDiscount2Type("nominal");
+    setDiscount2Value("0");
+    setDiscount2Label("Diskon 2");
     setItems([]);
     setLastInvoiceNumber("");
     setEditingInvoiceId("");
@@ -250,6 +283,10 @@ export function GenerateInvoice() {
         tanggal,
         diskon_type: discountType,
         diskon_value: discountValue,
+        diskon_label: discountLabel,
+        diskon_2_type: discount2Type,
+        diskon_2_value: discount2Value,
+        diskon_2_label: discount2Label,
         status,
         items: items.map((item) => ({
           book_id: item.book_id,
@@ -278,7 +315,11 @@ export function GenerateInvoice() {
         items: result.invoice.items,
         shipping: result.invoice.shipping,
         discountType: result.invoice.diskon_type,
-        discountValue: result.invoice.diskon_value
+        discountValue: result.invoice.diskon_value,
+        discountLabel: result.invoice.diskon_label,
+        discount2Type: result.invoice.diskon_2_type,
+        discount2Value: result.invoice.diskon_2_value,
+        discount2Label: result.invoice.diskon_2_label
       });
       setSharePayload({
         invoiceNumber: result.invoice.invoice_number,
@@ -494,7 +535,7 @@ export function GenerateInvoice() {
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
             <span className="text-sm font-medium text-slate-700">Ongkir</span>
             <select
@@ -510,8 +551,21 @@ export function GenerateInvoice() {
               ))}
             </select>
           </label>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-3">
           <label className="block">
-            <span className="text-sm font-medium text-slate-700">Tipe Diskon</span>
+            <span className="text-sm font-medium text-slate-700">Nama Diskon 1</span>
+            <input
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              onChange={(event) => setDiscountLabel(event.target.value)}
+              placeholder="Diskon"
+              type="text"
+              value={discountLabel}
+            />
+          </label>
+          <label className="block">
+            <span className="text-sm font-medium text-slate-700">Tipe Diskon 1</span>
             <select
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
               onChange={(event) => setDiscountType(event.target.value as DiscountType)}
@@ -522,13 +576,47 @@ export function GenerateInvoice() {
             </select>
           </label>
           <label className="block">
-            <span className="text-sm font-medium text-slate-700">Nilai Diskon</span>
+            <span className="text-sm font-medium text-slate-700">Nilai Diskon 1</span>
             <input
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
               min="0"
               onChange={(event) => setDiscountValue(event.target.value)}
               type="number"
               value={discountValue}
+            />
+          </label>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-3">
+          <label className="block">
+            <span className="text-sm font-medium text-slate-700">Nama Diskon 2</span>
+            <input
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              onChange={(event) => setDiscount2Label(event.target.value)}
+              placeholder="Diskon 2"
+              type="text"
+              value={discount2Label}
+            />
+          </label>
+          <label className="block">
+            <span className="text-sm font-medium text-slate-700">Tipe Diskon 2</span>
+            <select
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              onChange={(event) => setDiscount2Type(event.target.value as DiscountType)}
+              value={discount2Type}
+            >
+              <option value="nominal">Nominal</option>
+              <option value="persen">Persen</option>
+            </select>
+          </label>
+          <label className="block">
+            <span className="text-sm font-medium text-slate-700">Nilai Diskon 2</span>
+            <input
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              min="0"
+              onChange={(event) => setDiscount2Value(event.target.value)}
+              type="number"
+              value={discount2Value}
             />
           </label>
         </div>
@@ -561,10 +649,12 @@ export function GenerateInvoice() {
 
       <aside className="min-w-0 rounded-md border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
         <div className="mb-4 grid grid-cols-2 gap-2 text-sm">
-          <span className="text-slate-500">Subtotal</span>
-          <span className="text-right font-medium">{formatRupiah(totals.subtotal + totals.shippingCost)}</span>
+          <span className="text-slate-500">Subtotal Produk</span>
+          <span className="text-right font-medium">{formatRupiah(totals.subtotal)}</span>
           <span className="text-slate-500">Diskon</span>
           <span className="text-right font-medium">- {formatRupiah(totals.discount)}</span>
+          <span className="text-slate-500">Ongkir</span>
+          <span className="text-right font-medium">{formatRupiah(totals.shippingCost)}</span>
           <span className="text-slate-500">Total</span>
           <span className="text-right font-bold">{formatRupiah(totals.total)}</span>
         </div>

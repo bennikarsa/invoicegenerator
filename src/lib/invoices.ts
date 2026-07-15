@@ -8,7 +8,7 @@ import type {
   Shipping,
   UserRole
 } from "@/types";
-import { buildInvoiceText, buildWhatsAppUrl, calculateDiscount, calculateSubtotal } from "@/lib/invoice";
+import { buildInvoiceText, buildWhatsAppUrl, calculateInvoiceDiscounts, calculateSubtotal } from "@/lib/invoice";
 import { rowsToSettings } from "@/lib/settings";
 
 export type InvoiceItemInput = {
@@ -22,6 +22,10 @@ export type InvoiceSaveInput = {
   tanggal: string;
   diskon_type: DiscountType;
   diskon_value: number;
+  diskon_label: string;
+  diskon_2_type: DiscountType;
+  diskon_2_value: number;
+  diskon_2_label: string;
   status: "draft" | "sent";
   items: InvoiceItemInput[];
 };
@@ -34,6 +38,10 @@ export type InvoicePayload = {
   tanggal: string;
   diskon_type: DiscountType;
   diskon_value: number;
+  diskon_label: string;
+  diskon_2_type: DiscountType;
+  diskon_2_value: number;
+  diskon_2_label: string;
   status: InvoiceStatus;
   created_at: string;
   customers: Customer;
@@ -49,6 +57,15 @@ export type InvoicePayload = {
     books: Pick<AdminBook, "title"> | null;
   }>;
 };
+
+function parseDiscountValue(value: unknown) {
+  const parsed = typeof value === "number" ? value : typeof value === "string" ? Number(value) : 0;
+  return Number.isFinite(parsed) ? Math.floor(parsed) : Number.NaN;
+}
+
+function parseDiscountLabel(value: unknown, fallback: string) {
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
 
 export function sanitizeInvoiceSaveInput(input: Partial<Record<keyof InvoiceSaveInput, unknown>>) {
   const items = Array.isArray(input.items)
@@ -67,12 +84,8 @@ export function sanitizeInvoiceSaveInput(input: Partial<Record<keyof InvoiceSave
         };
       })
     : [];
-  const parsedDiscount =
-    typeof input.diskon_value === "number"
-      ? input.diskon_value
-      : typeof input.diskon_value === "string"
-        ? Number(input.diskon_value)
-        : 0;
+  const parsedDiscount = parseDiscountValue(input.diskon_value);
+  const parsedDiscount2 = parseDiscountValue(input.diskon_2_value);
 
   return {
     customer_id: typeof input.customer_id === "string" ? input.customer_id : "",
@@ -80,6 +93,10 @@ export function sanitizeInvoiceSaveInput(input: Partial<Record<keyof InvoiceSave
     tanggal: typeof input.tanggal === "string" ? input.tanggal : "",
     diskon_type: input.diskon_type === "persen" ? "persen" : "nominal",
     diskon_value: Number.isFinite(parsedDiscount) ? Math.floor(parsedDiscount) : Number.NaN,
+    diskon_label: parseDiscountLabel(input.diskon_label, "Diskon"),
+    diskon_2_type: input.diskon_2_type === "persen" ? "persen" : "nominal",
+    diskon_2_value: Number.isFinite(parsedDiscount2) ? Math.floor(parsedDiscount2) : Number.NaN,
+    diskon_2_label: parseDiscountLabel(input.diskon_2_label, "Diskon 2"),
     status: input.status === "sent" ? "sent" : "draft",
     items
   } satisfies InvoiceSaveInput;
@@ -103,11 +120,19 @@ export function validateInvoiceSaveInput(input: InvoiceSaveInput) {
   }
 
   if (!Number.isInteger(input.diskon_value) || input.diskon_value < 0) {
-    return { ok: false, message: "Diskon harus berupa angka non-negatif." };
+    return { ok: false, message: "Diskon 1 harus berupa angka non-negatif." };
   }
 
   if (input.diskon_type === "persen" && input.diskon_value > 100) {
-    return { ok: false, message: "Diskon persen tidak boleh lebih dari 100%." };
+    return { ok: false, message: "Diskon 1 persen tidak boleh lebih dari 100%." };
+  }
+
+  if (!Number.isInteger(input.diskon_2_value) || input.diskon_2_value < 0) {
+    return { ok: false, message: "Diskon 2 harus berupa angka non-negatif." };
+  }
+
+  if (input.diskon_2_type === "persen" && input.diskon_2_value > 100) {
+    return { ok: false, message: "Diskon 2 persen tidak boleh lebih dari 100%." };
   }
 
   return { ok: true, message: "" };
@@ -125,6 +150,10 @@ export function mapInvoicePayload<Row extends InvoicePayload>(
     tanggal: row.tanggal,
     diskon_type: row.diskon_type,
     diskon_value: row.diskon_value,
+    diskon_label: row.diskon_label || "Diskon",
+    diskon_2_type: row.diskon_2_type === "persen" ? "persen" : "nominal",
+    diskon_2_value: Number(row.diskon_2_value ?? 0),
+    diskon_2_label: row.diskon_2_label || "Diskon 2",
     status: row.status,
     created_at: row.created_at,
     customer: row.customers,
@@ -165,7 +194,11 @@ export function createInvoiceMessage(
     items: invoice.items,
     shipping: invoice.shipping,
     discountType: invoice.diskon_type,
-    discountValue: invoice.diskon_value
+    discountValue: invoice.diskon_value,
+    discountLabel: invoice.diskon_label,
+    discount2Type: invoice.diskon_2_type,
+    discount2Value: invoice.diskon_2_value,
+    discount2Label: invoice.diskon_2_label
   });
 
   return {
@@ -178,7 +211,14 @@ export function calculateSafeReportTotals(invoices: InvoiceDetailForRole[], role
   return invoices.reduce(
     (totals, invoice) => {
       const subtotal = calculateSubtotal(invoice.items);
-      const discount = calculateDiscount(subtotal, invoice.diskon_type, invoice.diskon_value);
+      const { totalDiscount } = calculateInvoiceDiscounts(subtotal, {
+        discountType: invoice.diskon_type,
+        discountValue: invoice.diskon_value,
+        discountLabel: invoice.diskon_label,
+        discount2Type: invoice.diskon_2_type,
+        discount2Value: invoice.diskon_2_value,
+        discount2Label: invoice.diskon_2_label
+      });
       const shipping = invoice.shipping?.tarif ?? 0;
       const communityProfitBeforeDiscount = invoice.items.reduce(
         (sum, item) => sum + (item.harga_jual_snapshot - item.harga_komunitas_snapshot) * item.qty,
@@ -196,9 +236,9 @@ export function calculateSafeReportTotals(invoices: InvoiceDetailForRole[], role
           : 0;
 
       return {
-        totalSales: totals.totalSales + subtotal + shipping - discount,
+        totalSales: totals.totalSales + subtotal + shipping - totalDiscount,
         shippingPassThrough: totals.shippingPassThrough + shipping,
-        discountTotal: totals.discountTotal + discount,
+        discountTotal: totals.discountTotal + totalDiscount,
         communityProfitBeforeDiscount: totals.communityProfitBeforeDiscount + communityProfitBeforeDiscount,
         adminProfit: totals.adminProfit + adminProfit
       };
