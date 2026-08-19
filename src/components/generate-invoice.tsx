@@ -246,8 +246,10 @@ export function GenerateInvoice() {
   }
 
   function updateQty(bookIdValue: string, qty: number) {
+    const nextQty = Number.isFinite(qty) ? Math.max(1, Math.floor(qty)) : 1;
+
     setItems((current) =>
-      current.map((item) => (item.book_id === bookIdValue ? { ...item, qty: Math.max(1, qty) } : item))
+      current.map((item) => (item.book_id === bookIdValue ? { ...item, qty: nextQty } : item))
     );
   }
 
@@ -514,17 +516,44 @@ export function GenerateInvoice() {
           </div>
           <div className="mt-4 space-y-2">
             {items.map((item) => (
-              <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_76px_32px] items-center gap-2 text-sm sm:grid-cols-[minmax(0,1fr)_88px_32px]" key={item.book_id}>
-                <span className="min-w-0 truncate font-medium text-ink">{item.title}</span>
-                <input
-                  className="rounded-md border border-slate-300 px-2 py-1 text-sm"
-                  min="1"
-                  onChange={(event) => updateQty(item.book_id, Number(event.target.value))}
-                  type="number"
-                  value={item.qty}
-                />
+              <div
+                className="grid min-w-0 grid-cols-[minmax(0,1fr)_44px] items-center gap-2 rounded-md border border-slate-200 bg-white p-2 text-sm sm:grid-cols-[minmax(0,1fr)_144px_40px]"
+                key={item.book_id}
+              >
+                <span className="col-start-1 row-start-1 min-w-0 truncate font-medium text-ink" title={item.title}>
+                  {item.title}
+                </span>
+                <div className="col-span-2 row-start-2 grid w-full max-w-[180px] grid-cols-[44px_minmax(52px,1fr)_44px] justify-self-end sm:col-span-1 sm:col-start-2 sm:row-start-1 sm:max-w-none">
+                  <button
+                    aria-label={`Kurangi jumlah ${item.title}`}
+                    className="flex h-11 items-center justify-center rounded-l-md border border-r-0 border-slate-300 bg-slate-50 text-xl font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300"
+                    disabled={item.qty <= 1}
+                    onClick={() => updateQty(item.book_id, item.qty - 1)}
+                    type="button"
+                  >
+                    −
+                  </button>
+                  <input
+                    aria-label={`Jumlah ${item.title}`}
+                    className="h-11 min-w-0 border border-slate-300 px-2 text-center text-base outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                    inputMode="numeric"
+                    min="1"
+                    onChange={(event) => updateQty(item.book_id, Number(event.target.value))}
+                    type="number"
+                    value={item.qty}
+                  />
+                  <button
+                    aria-label={`Tambah jumlah ${item.title}`}
+                    className="flex h-11 items-center justify-center rounded-r-md border border-l-0 border-slate-300 bg-teal-50 text-xl font-semibold text-brand hover:bg-teal-100"
+                    onClick={() => updateQty(item.book_id, item.qty + 1)}
+                    type="button"
+                  >
+                    +
+                  </button>
+                </div>
                 <button
-                  className="rounded-md border border-red-200 bg-white px-2 py-1 text-xs text-red-700 hover:bg-red-50"
+                  aria-label={`Hapus ${item.title}`}
+                  className="col-start-2 row-start-1 flex h-10 w-10 items-center justify-center rounded-md border border-red-200 bg-white text-sm text-red-700 hover:bg-red-50 sm:col-start-3"
                   onClick={() => setItems((current) => current.filter((candidate) => candidate.book_id !== item.book_id))}
                   type="button"
                 >

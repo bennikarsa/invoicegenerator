@@ -18,48 +18,18 @@ type ReportResponse =
       message: string;
     };
 
-function padDatePart(value: number) {
-  return String(value).padStart(2, "0");
-}
-
-function todayDisplayValue() {
-  const now = new Date();
-
-  return `${padDatePart(now.getDate())}/${padDatePart(now.getMonth() + 1)}/${now.getFullYear()}`;
-}
-
-function normalizeDateDisplay(value: string) {
-  const digits = value.replace(/\D/g, "").slice(0, 8);
-  const day = digits.slice(0, 2);
-  const month = digits.slice(2, 4);
-  const year = digits.slice(4, 8);
-
-  return [day, month, year].filter(Boolean).join("/");
-}
-
-function displayDateToIso(value: string) {
-  const [day, month, year] = value.split("/");
-
-  if (!day || !month || !year || day.length !== 2 || month.length !== 2 || year.length !== 4) {
-    return null;
-  }
-
-  const date = new Date(Number(year), Number(month) - 1, Number(day));
-  const isValid =
-    date.getFullYear() === Number(year) &&
-    date.getMonth() === Number(month) - 1 &&
-    date.getDate() === Number(day);
-
-  if (!isValid) {
-    return null;
-  }
+function todayInputValue() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
 
 export function ReportPanel() {
-  const [dateFrom, setDateFrom] = useState(todayDisplayValue());
-  const [dateTo, setDateTo] = useState(todayDisplayValue());
+  const [dateFrom, setDateFrom] = useState(todayInputValue());
+  const [dateTo, setDateTo] = useState(todayInputValue());
   const [role, setRole] = useState<UserRole | null>(null);
   const [invoices, setInvoices] = useState<InvoiceDetailForRole[]>([]);
   const [error, setError] = useState("");
@@ -69,12 +39,16 @@ export function ReportPanel() {
 
   const loadReport = useCallback(async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
-    const dateFromIso = displayDateToIso(dateFrom);
-    const dateToIso = displayDateToIso(dateTo);
 
-    if (!dateFromIso || !dateToIso) {
+    if (!dateFrom || !dateTo) {
       setInvoices([]);
-      setError("Format tanggal harus DD/MM/YYYY.");
+      setError("Tanggal awal dan akhir wajib dipilih.");
+      return;
+    }
+
+    if (dateFrom > dateTo) {
+      setInvoices([]);
+      setError("Tanggal awal tidak boleh melewati tanggal akhir.");
       return;
     }
 
@@ -83,8 +57,8 @@ export function ReportPanel() {
 
     const params = new URLSearchParams({
       status: "done",
-      date_from: dateFromIso,
-      date_to: dateToIso
+      date_from: dateFrom,
+      date_to: dateTo
     });
     const response = await fetch(`/api/invoices?${params.toString()}`);
     const result = (await response.json()) as ReportResponse;
@@ -108,10 +82,7 @@ export function ReportPanel() {
   }, [loadReport]);
 
   async function exportExcel() {
-    const dateFromIso = displayDateToIso(dateFrom);
-    const dateToIso = displayDateToIso(dateTo);
-
-    if (!dateFromIso || !dateToIso || !role) {
+    if (!dateFrom || !dateTo || !role) {
       setError("Muat laporan dengan rentang tanggal yang valid sebelum export Excel.");
       return;
     }
@@ -123,8 +94,8 @@ export function ReportPanel() {
       await exportDoneInvoicesToExcel({
         invoices,
         role,
-        dateFrom: dateFromIso,
-        dateTo: dateToIso
+        dateFrom,
+        dateTo
       });
     } catch (exportError) {
       setError(exportError instanceof Error ? exportError.message : "Gagal membuat file Excel.");
@@ -143,11 +114,10 @@ export function ReportPanel() {
           <span className="text-sm font-medium text-slate-700">Dari</span>
           <input
             className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
-            inputMode="numeric"
-            maxLength={10}
-            onChange={(event) => setDateFrom(normalizeDateDisplay(event.target.value))}
-            placeholder="DD/MM/YYYY"
-            type="text"
+            max={dateTo || undefined}
+            onChange={(event) => setDateFrom(event.target.value)}
+            required
+            type="date"
             value={dateFrom}
           />
         </label>
@@ -155,11 +125,10 @@ export function ReportPanel() {
           <span className="text-sm font-medium text-slate-700">Sampai</span>
           <input
             className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
-            inputMode="numeric"
-            maxLength={10}
-            onChange={(event) => setDateTo(normalizeDateDisplay(event.target.value))}
-            placeholder="DD/MM/YYYY"
-            type="text"
+            min={dateFrom || undefined}
+            onChange={(event) => setDateTo(event.target.value)}
+            required
+            type="date"
             value={dateTo}
           />
         </label>
