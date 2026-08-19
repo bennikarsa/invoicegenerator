@@ -185,12 +185,17 @@ export function InvoicesList({ status }: InvoicesListProps) {
     setMessage("Teks invoice berhasil disalin.");
   }
 
-  async function updateInvoiceStatus(invoice: InvoiceDetailForRole, nextStatus: "done" | "void") {
-    const confirmed = window.confirm(
-      nextStatus === "done"
-        ? `Tandai invoice ${invoice.invoice_number} sebagai done?`
-        : `Void invoice ${invoice.invoice_number}? Invoice void tidak masuk laporan.`
-    );
+  async function updateInvoiceStatus(
+    invoice: InvoiceDetailForRole,
+    nextStatus: "draft" | "done" | "void"
+  ) {
+    const confirmationMessage =
+      nextStatus === "draft"
+        ? `Tarik invoice ${invoice.invoice_number} ke draft? Invoice done akan keluar dari laporan. Semua snapshot harga akan diperbarui dari data produk terbaru saat draft disimpan ulang.`
+        : nextStatus === "done"
+          ? `Tandai invoice ${invoice.invoice_number} sebagai done?`
+          : `Void invoice ${invoice.invoice_number}? Invoice void tidak masuk laporan.`;
+    const confirmed = window.confirm(confirmationMessage);
 
     if (!confirmed) {
       return;
@@ -213,11 +218,14 @@ export function InvoicesList({ status }: InvoicesListProps) {
       return;
     }
 
-    setMessage(
-      nextStatus === "done"
-        ? `Invoice ${invoice.invoice_number} ditandai done.`
-        : `Invoice ${invoice.invoice_number} ditandai void.`
-    );
+    const successMessage =
+      nextStatus === "draft"
+        ? `Invoice ${invoice.invoice_number} sudah ditarik ke draft dan dapat diedit kembali.`
+        : nextStatus === "done"
+          ? `Invoice ${invoice.invoice_number} ditandai done.`
+          : `Invoice ${invoice.invoice_number} ditandai void.`;
+
+    setMessage(successMessage);
     await fetchInvoices(search);
   }
 
@@ -348,6 +356,15 @@ export function InvoicesList({ status }: InvoicesListProps) {
                         Void
                       </button>
                     ) : null}
+                    {status === "history" ? (
+                      <button
+                        className="rounded-md border border-amber-300 bg-amber-50 px-2 py-2 text-xs font-medium text-amber-800 hover:bg-amber-100"
+                        onClick={() => updateInvoiceStatus(invoice, "draft")}
+                        type="button"
+                      >
+                        Tarik ke Draft
+                      </button>
+                    ) : null}
                   </div>
                   {status === "draft" ? (
                     <div className="mt-2 grid grid-cols-2 gap-2">
@@ -452,6 +469,15 @@ export function InvoicesList({ status }: InvoicesListProps) {
                               type="button"
                             >
                               Void
+                            </button>
+                          ) : null}
+                          {status === "history" ? (
+                            <button
+                              className="rounded-md border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-100"
+                              onClick={() => updateInvoiceStatus(invoice, "draft")}
+                              type="button"
+                            >
+                              Tarik ke Draft
                             </button>
                           ) : null}
                           {status === "draft" ? (

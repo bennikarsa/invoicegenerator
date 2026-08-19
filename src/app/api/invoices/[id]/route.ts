@@ -211,7 +211,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   const body = (await request.json().catch(() => null)) as { status?: unknown } | null;
   const nextStatus = body?.status;
 
-  if (nextStatus !== "done" && nextStatus !== "void") {
+  if (nextStatus !== "draft" && nextStatus !== "done" && nextStatus !== "void") {
     return NextResponse.json({ ok: false, message: "Status tujuan tidak valid." }, { status: 400 });
   }
 
@@ -227,10 +227,13 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   }
 
   const currentStatus = invoice.status as InvoiceStatus;
+  const canReopenAsDraft =
+    nextStatus === "draft" &&
+    (currentStatus === "sent" || currentStatus === "done" || currentStatus === "void");
   const canMarkDone = currentStatus === "sent" && nextStatus === "done";
   const canVoid = (currentStatus === "sent" || currentStatus === "done") && nextStatus === "void";
 
-  if (!canMarkDone && !canVoid) {
+  if (!canReopenAsDraft && !canMarkDone && !canVoid) {
     return NextResponse.json(
       { ok: false, message: "Perubahan status invoice tidak diizinkan." },
       { status: 400 }

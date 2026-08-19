@@ -149,7 +149,9 @@ export function GenerateInvoice() {
           harga_komunitas_snapshot: item.harga_komunitas_snapshot
         }))
       );
-      setMessage(`Mengedit draft ${invoiceResult.invoice.invoice_number}.`);
+      setMessage(
+        `Mengedit draft ${invoiceResult.invoice.invoice_number}. Snapshot harga akan mengikuti data produk terbaru saat disimpan.`
+      );
     }
 
     loadData();
@@ -308,6 +310,15 @@ export function GenerateInvoice() {
     setLastInvoiceNumber(result.invoice.invoice_number);
     setEditingInvoiceId(result.invoice.status === "draft" ? result.invoice.id : "");
     setSettings(result.settings);
+    setItems(
+      result.invoice.items.map((item) => ({
+        book_id: item.book_id,
+        title: item.title,
+        qty: item.qty,
+        harga_jual_snapshot: item.harga_jual_snapshot,
+        harga_komunitas_snapshot: item.harga_komunitas_snapshot
+      }))
+    );
 
     if (status === "sent") {
       const text = buildInvoiceText({
