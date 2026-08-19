@@ -1,5 +1,5 @@
 import type {
-  AdminBook,
+  AdminProduct,
   Customer,
   DiscountType,
   InvoiceDetailForRole,
@@ -54,7 +54,7 @@ export type InvoicePayload = {
     harga_jual_snapshot: number;
     harga_komunitas_snapshot: number;
     harga_modal_snapshot?: number;
-    books: Pick<AdminBook, "title"> | null;
+    books: Pick<AdminProduct, "title"> | null;
   }>;
 };
 
@@ -112,11 +112,11 @@ export function validateInvoiceSaveInput(input: InvoiceSaveInput) {
   }
 
   if (input.items.length === 0) {
-    return { ok: false, message: "Invoice wajib berisi minimal 1 buku." };
+    return { ok: false, message: "Invoice wajib berisi minimal 1 produk." };
   }
 
   if (input.items.some((item) => !item.book_id || !Number.isInteger(item.qty) || item.qty <= 0)) {
-    return { ok: false, message: "Setiap item buku wajib punya qty positif." };
+    return { ok: false, message: "Setiap item produk wajib punya qty positif." };
   }
 
   if (!Number.isInteger(input.diskon_value) || input.diskon_value < 0) {
@@ -162,7 +162,7 @@ export function mapInvoicePayload<Row extends InvoicePayload>(
       id: item.id,
       invoice_id: item.invoice_id,
       book_id: item.book_id,
-      title: item.books?.title ?? "Buku",
+      title: item.books?.title ?? "Produk",
       qty: item.qty,
       harga_jual_snapshot: item.harga_jual_snapshot,
       harga_komunitas_snapshot: item.harga_komunitas_snapshot,
@@ -224,6 +224,7 @@ export function calculateSafeReportTotals(invoices: InvoiceDetailForRole[], role
         (sum, item) => sum + (item.harga_jual_snapshot - item.harga_komunitas_snapshot) * item.qty,
         0
       );
+      const communityProfitAfterDiscount = communityProfitBeforeDiscount - totalDiscount;
       const adminProfit =
         role === "admin"
           ? invoice.items.reduce((sum, item) => {
@@ -240,6 +241,7 @@ export function calculateSafeReportTotals(invoices: InvoiceDetailForRole[], role
         shippingPassThrough: totals.shippingPassThrough + shipping,
         discountTotal: totals.discountTotal + totalDiscount,
         communityProfitBeforeDiscount: totals.communityProfitBeforeDiscount + communityProfitBeforeDiscount,
+        communityProfitAfterDiscount: totals.communityProfitAfterDiscount + communityProfitAfterDiscount,
         adminProfit: totals.adminProfit + adminProfit
       };
     },
@@ -248,6 +250,7 @@ export function calculateSafeReportTotals(invoices: InvoiceDetailForRole[], role
       shippingPassThrough: 0,
       discountTotal: 0,
       communityProfitBeforeDiscount: 0,
+      communityProfitAfterDiscount: 0,
       adminProfit: 0
     }
   );

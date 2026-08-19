@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 
 import {
-  sanitizeAdminBookInput,
-  sanitizePublicBookInput,
-  validateAdminBookInput,
-  validatePublicBookInput
+  sanitizeAdminProductInput,
+  sanitizePublicProductInput,
+  validateAdminProductInput,
+  validatePublicProductInput
 } from "@/lib/books";
 import { isBlankBulkRow, pickBulkValue, type BulkImportResult } from "@/lib/bulk-import";
 import { getCurrentAuthSession } from "@/lib/server-auth";
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   const rows = Array.isArray(body?.rows) ? body.rows : [];
 
   if (rows.length === 0) {
-    return NextResponse.json({ ok: false, message: "File belum berisi data buku." }, { status: 400 });
+    return NextResponse.json({ ok: false, message: "File belum berisi data produk." }, { status: 400 });
   }
 
   const errors: BulkImportResult[] = [];
@@ -52,20 +52,20 @@ export async function POST(request: Request) {
     }
 
     const rawInput = {
-      title: pickBulkValue(record, ["judul", "title", "nama buku"]),
+      title: pickBulkValue(record, ["produk", "nama produk", "judul", "title", "nama buku"]),
       harga_modal: pickBulkValue(record, ["harga dasar", "harga modal", "modal"]),
       harga_komunitas: pickBulkValue(record, ["harga komunitas", "komunitas"]),
       harga_jual: pickBulkValue(record, ["harga jual", "jual"])
     };
     const input =
       session.role === "admin"
-        ? sanitizeAdminBookInput(rawInput)
+        ? sanitizeAdminProductInput(rawInput)
         : {
-            ...sanitizePublicBookInput(rawInput),
+            ...sanitizePublicProductInput(rawInput),
             harga_modal: 0
           };
     const validation =
-      session.role === "admin" ? validateAdminBookInput(input) : validatePublicBookInput(input);
+      session.role === "admin" ? validateAdminProductInput(input) : validatePublicProductInput(input);
 
     if (!validation.ok) {
       errors.push({ row: rowNumber, message: validation.message });
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
   }
 
   if (inputs.length === 0) {
-    return NextResponse.json({ ok: false, message: "Tidak ada baris buku yang bisa diimport." }, { status: 400 });
+    return NextResponse.json({ ok: false, message: "Tidak ada baris produk yang bisa diimport." }, { status: 400 });
   }
 
   try {
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         ok: false,
-        message: error instanceof Error ? error.message : "Gagal import buku."
+        message: error instanceof Error ? error.message : "Gagal import produk."
       },
       { status: 500 }
     );

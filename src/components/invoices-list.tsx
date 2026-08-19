@@ -294,7 +294,7 @@ export function InvoicesList({ status }: InvoicesListProps) {
                   </dl>
                   {expandedInvoiceId === invoice.id ? (
                     <div className="mt-3 rounded-md bg-slate-50 p-3">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Rincian Buku</p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Rincian Produk</p>
                       <div className="mt-2 space-y-2">
                         {invoice.items.map((item) => (
                           <div className="grid grid-cols-[minmax(0,1fr)_44px_96px] gap-2 text-sm" key={item.id}>
@@ -480,7 +480,7 @@ export function InvoicesList({ status }: InvoicesListProps) {
                           <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
                             <div>
                               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                Rincian Buku
+                                Rincian Produk
                               </p>
                               <div className="mt-2 space-y-2">
                                 {invoice.items.map((item) => (

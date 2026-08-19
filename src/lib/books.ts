@@ -1,7 +1,7 @@
-import type { AdminBook } from "@/types";
+import type { AdminProduct } from "@/types";
 
-export type AdminBookInput = Pick<AdminBook, "title" | "harga_modal" | "harga_komunitas" | "harga_jual">;
-export type PublicBookInput = Pick<AdminBook, "title" | "harga_komunitas" | "harga_jual">;
+export type AdminProductInput = Pick<AdminProduct, "title" | "harga_modal" | "harga_komunitas" | "harga_jual">;
+export type PublicProductInput = Pick<AdminProduct, "title" | "harga_komunitas" | "harga_jual">;
 
 function parsePrice(value: unknown) {
   const normalized =
@@ -12,7 +12,7 @@ function parsePrice(value: unknown) {
   return Number.isFinite(parsed) ? Math.floor(parsed) : Number.NaN;
 }
 
-export function sanitizeAdminBookInput(input: Partial<Record<keyof AdminBookInput, unknown>>) {
+export function sanitizeAdminProductInput(input: Partial<Record<keyof AdminProductInput, unknown>>) {
   return {
     title: typeof input.title === "string" ? input.title.trim() : "",
     harga_modal: parsePrice(input.harga_modal),
@@ -21,11 +21,11 @@ export function sanitizeAdminBookInput(input: Partial<Record<keyof AdminBookInpu
   };
 }
 
-export function validateAdminBookInput(input: AdminBookInput) {
+export function validateAdminProductInput(input: AdminProductInput) {
   if (!input.title) {
     return {
       ok: false,
-      message: "Judul buku wajib diisi."
+      message: "Nama produk wajib diisi."
     };
   }
 
@@ -44,7 +44,7 @@ export function validateAdminBookInput(input: AdminBookInput) {
   };
 }
 
-export function sanitizePublicBookInput(input: Partial<Record<keyof PublicBookInput, unknown>>) {
+export function sanitizePublicProductInput(input: Partial<Record<keyof PublicProductInput, unknown>>) {
   return {
     title: typeof input.title === "string" ? input.title.trim() : "",
     harga_komunitas: parsePrice(input.harga_komunitas),
@@ -52,11 +52,11 @@ export function sanitizePublicBookInput(input: Partial<Record<keyof PublicBookIn
   };
 }
 
-export function validatePublicBookInput(input: PublicBookInput) {
+export function validatePublicProductInput(input: PublicProductInput) {
   if (!input.title) {
     return {
       ok: false,
-      message: "Judul buku wajib diisi."
+      message: "Nama produk wajib diisi."
     };
   }
 

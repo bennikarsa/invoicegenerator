@@ -6,7 +6,7 @@ export default function GeneratePage() {
     <>
       <PageHeader
         title="Generate Invoice"
-        description="Pilih pembeli, buku, ongkir, dan diskon untuk membuat preview invoice WhatsApp."
+        description="Pilih pembeli, produk, ongkir, dan diskon untuk membuat preview invoice WhatsApp."
       />
       <GenerateInvoice />
     </>

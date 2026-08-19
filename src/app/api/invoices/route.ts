@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 
 import {
-  formatInvoiceNumber,
-  getInvoiceMonthCode,
   mapInvoicePayload,
   rowsToSettings,
   sanitizeInvoiceSaveInput,
@@ -105,26 +103,6 @@ export async function GET(request: Request) {
   }
 }
 
-async function getNextInvoiceNumber(supabase: ReturnType<typeof createSupabaseClient>, tanggal: string) {
-  const monthCode = getInvoiceMonthCode(new Date(tanggal));
-  const prefix = `INV${monthCode}`;
-  const { data, error } = await supabase
-    .from("invoices")
-    .select("invoice_number")
-    .like("invoice_number", `${prefix}%`)
-    .order("invoice_number", { ascending: false })
-    .limit(1);
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  const latest = data?.[0]?.invoice_number;
-  const latestSequence = latest ? Number(latest.slice(prefix.length)) : 0;
-
-  return formatInvoiceNumber(monthCode, Number.isFinite(latestSequence) ? latestSequence + 1 : 1);
-}
-
 export async function POST(request: Request) {
   const session = getCurrentAuthSession();
 
@@ -168,7 +146,7 @@ export async function POST(request: Request) {
     }
 
     if (!books || books.length !== new Set(bookIds).size) {
-      return NextResponse.json({ ok: false, message: "Ada buku yang tidak ditemukan." }, { status: 400 });
+      return NextResponse.json({ ok: false, message: "Ada produk yang tidak ditemukan." }, { status: 400 });
     }
 
     const bookById = new Map(books.map((book) => [book.id, book]));
@@ -176,7 +154,7 @@ export async function POST(request: Request) {
       const book = bookById.get(item.book_id);
 
       if (!book) {
-        throw new Error("Ada buku yang tidak ditemukan.");
+        throw new Error("Ada produk yang tidak ditemukan.");
       }
 
       return {
@@ -201,64 +179,36 @@ export async function POST(request: Request) {
     });
 
     if (totalDiscount > subtotal) {
-      return NextResponse.json({ ok: false, message: "Diskon tidak boleh melebihi subtotal buku." }, { status: 400 });
+      return NextResponse.json({ ok: false, message: "Diskon tidak boleh melebihi subtotal produk." }, { status: 400 });
     }
 
-    let invoice = null;
-    let lastError = "";
+    const { data: savedRows, error: saveError } = await supabase.rpc("save_invoice_with_items", {
+      p_invoice_id: null,
+      p_customer_id: input.customer_id,
+      p_shipping_id: input.shipping_id,
+      p_tanggal: input.tanggal,
+      p_diskon_type: input.diskon_type,
+      p_diskon_value: input.diskon_value,
+      p_diskon_label: input.diskon_label,
+      p_diskon_2_type: input.diskon_2_type,
+      p_diskon_2_value: input.diskon_2_value,
+      p_diskon_2_label: input.diskon_2_label,
+      p_status: input.status,
+      p_items: itemsWithSnapshots
+    });
+    const savedInvoice = savedRows?.[0] as { invoice_id: string } | undefined;
 
-    for (let attempt = 0; attempt < 3 && !invoice; attempt += 1) {
-      const invoiceNumber = await getNextInvoiceNumber(supabase, input.tanggal);
-      const { data, error } = await supabase
-        .from("invoices")
-        .insert({
-          invoice_number: invoiceNumber,
-          customer_id: input.customer_id,
-          shipping_id: input.shipping_id,
-          tanggal: input.tanggal,
-          diskon_type: input.diskon_type,
-          diskon_value: input.diskon_value,
-          diskon_label: input.diskon_label,
-          diskon_2_type: input.diskon_2_type,
-          diskon_2_value: input.diskon_2_value,
-          diskon_2_label: input.diskon_2_label,
-          status: input.status
-        })
-        .select("id")
-        .single();
-
-      if (!error) {
-        invoice = data;
-        break;
-      }
-
-      lastError = error.message;
-
-      if (!error.message.toLowerCase().includes("duplicate")) {
-        break;
-      }
-    }
-
-    if (!invoice) {
-      return NextResponse.json({ ok: false, message: lastError || "Gagal membuat invoice." }, { status: 500 });
-    }
-
-    const { error: itemsError } = await supabase.from("invoice_items").insert(
-      itemsWithSnapshots.map((item) => ({
-        invoice_id: invoice.id,
-        ...item
-      }))
-    );
-
-    if (itemsError) {
-      await supabase.from("invoices").delete().eq("id", invoice.id);
-      return NextResponse.json({ ok: false, message: itemsError.message }, { status: 500 });
+    if (saveError || !savedInvoice) {
+      return NextResponse.json(
+        { ok: false, message: saveError?.message || "Gagal membuat invoice." },
+        { status: 500 }
+      );
     }
 
     const { data: invoiceData, error: invoiceError } = await supabase
       .from("invoices")
       .select(getInvoiceSelect(session.role))
-      .eq("id", invoice.id)
+      .eq("id", savedInvoice.invoice_id)
       .single();
 
     if (invoiceError) {

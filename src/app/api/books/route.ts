@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 
 import {
-  sanitizeAdminBookInput,
-  sanitizePublicBookInput,
-  validateAdminBookInput,
-  validatePublicBookInput
+  sanitizeAdminProductInput,
+  sanitizePublicProductInput,
+  validateAdminProductInput,
+  validatePublicProductInput
 } from "@/lib/books";
 import { getCurrentAuthSession } from "@/lib/server-auth";
 import { createSupabaseClient } from "@/lib/supabase";
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         ok: false,
-        message: error instanceof Error ? error.message : "Gagal membaca data buku."
+        message: error instanceof Error ? error.message : "Gagal membaca data produk."
       },
       { status: 500 }
     );
@@ -71,13 +71,13 @@ export async function POST(request: Request) {
   > | null;
   const input =
     session.role === "admin"
-      ? sanitizeAdminBookInput(body ?? {})
+      ? sanitizeAdminProductInput(body ?? {})
       : {
-          ...sanitizePublicBookInput(body ?? {}),
+          ...sanitizePublicProductInput(body ?? {}),
           harga_modal: 0
         };
   const validation =
-    session.role === "admin" ? validateAdminBookInput(input) : validatePublicBookInput(input);
+    session.role === "admin" ? validateAdminProductInput(input) : validatePublicProductInput(input);
 
   if (!validation.ok) {
     return NextResponse.json(validation, { status: 400 });
@@ -88,7 +88,11 @@ export async function POST(request: Request) {
     const { data, error } = await supabase
       .from("books")
       .insert(input)
-      .select("id,title,harga_modal,harga_komunitas,harga_jual,created_at")
+      .select(
+        session.role === "admin"
+          ? "id,title,harga_modal,harga_komunitas,harga_jual,created_at"
+          : "id,title,harga_komunitas,harga_jual,created_at"
+      )
       .single();
 
     if (error) {
@@ -100,7 +104,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         ok: false,
-        message: error instanceof Error ? error.message : "Gagal menyimpan buku."
+        message: error instanceof Error ? error.message : "Gagal menyimpan produk."
       },
       { status: 500 }
     );

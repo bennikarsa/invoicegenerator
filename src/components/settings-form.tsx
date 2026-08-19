@@ -113,7 +113,7 @@ export function SettingsForm() {
 
   async function resetAllData() {
     const confirmed = window.confirm(
-      "Reset semua data invoice, buku, pembeli, dan ongkir? Setting invoice dan akun login tetap disimpan."
+      "Reset semua data invoice, produk, pembeli, dan ongkir? Setting invoice dan akun login tetap disimpan."
     );
 
     if (!confirmed) {
@@ -137,7 +137,7 @@ export function SettingsForm() {
     }
 
     setResetConfirmation("");
-    setMessage("Semua data invoice, buku, pembeli, dan ongkir berhasil direset.");
+    setMessage("Semua data invoice, produk, pembeli, dan ongkir berhasil direset.");
   }
 
   return (
@@ -179,7 +179,7 @@ export function SettingsForm() {
       <section className="rounded-md border border-red-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-bold text-ink">Reset Semua Data</h2>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Menghapus semua invoice, draft, history, buku, pembeli, dan ongkir. Setting invoice dan akun login tidak
+          Menghapus semua invoice, draft, history, produk, pembeli, dan ongkir. Setting invoice dan akun login tidak
           dihapus.
         </p>
         <label className="mt-4 block">

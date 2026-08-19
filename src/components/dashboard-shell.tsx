@@ -13,7 +13,7 @@ const navigation = [
   { href: "/draft", label: "Draft" },
   { href: "/history", label: "History" },
   { href: "/laporan", label: "Laporan" },
-  { href: "/database/buku", label: "Buku" },
+  { href: "/database/buku", label: "Produk" },
   { href: "/database/pembeli", label: "Pembeli" },
   { href: "/database/ongkir", label: "Ongkir" },
   { href: "/setting", label: "Setting" }

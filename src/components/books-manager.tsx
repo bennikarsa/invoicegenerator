@@ -2,57 +2,57 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 
-import type { AdminBook, BookBase, UserRole } from "@/types";
+import type { AdminProduct, ProductBase, UserRole } from "@/types";
 import { AUTH_SESSION_KEY, parseAuthSession } from "@/lib/auth";
 import { formatRupiah } from "@/lib/invoice";
 import { BulkCsvImport } from "@/components/bulk-csv-import";
 
-type BookRow = BookBase | AdminBook;
+type ProductRow = ProductBase | AdminProduct;
 
-type BookFormState = {
+type ProductFormState = {
   title: string;
   harga_modal: string;
   harga_komunitas: string;
   harga_jual: string;
 };
 
-type BooksResponse =
+type ProductsResponse =
   | {
       ok: true;
       role: UserRole;
-      books: BookRow[];
+      books: ProductRow[];
     }
   | {
       ok: false;
       message: string;
     };
 
-type BookMutationResponse =
+type ProductMutationResponse =
   | {
       ok: true;
-      book: AdminBook;
+      book: ProductRow;
     }
   | {
       ok: false;
       message: string;
     };
 
-const emptyForm: BookFormState = {
+const emptyForm: ProductFormState = {
   title: "",
   harga_modal: "",
   harga_komunitas: "",
   harga_jual: ""
 };
 
-function hasAdminPrice(book: BookRow): book is AdminBook {
+function hasAdminPrice(book: ProductRow): book is AdminProduct {
   return "harga_modal" in book;
 }
 
 export function BooksManager() {
-  const [books, setBooks] = useState<BookRow[]>([]);
+  const [books, setBooks] = useState<ProductRow[]>([]);
   const [role, setRole] = useState<UserRole | null>(null);
-  const [form, setForm] = useState<BookFormState>(emptyForm);
-  const [editingBook, setEditingBook] = useState<BookRow | null>(null);
+  const [form, setForm] = useState<ProductFormState>(emptyForm);
+  const [editingBook, setEditingBook] = useState<ProductRow | null>(null);
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -65,7 +65,7 @@ export function BooksManager() {
 
     const query = searchValue ? `?search=${encodeURIComponent(searchValue)}` : "";
     const response = await fetch(`/api/books${query}`);
-    const result = (await response.json()) as BooksResponse;
+    const result = (await response.json()) as ProductsResponse;
 
     if (result.ok) {
       setRole(result.role);
@@ -102,7 +102,7 @@ export function BooksManager() {
       },
       body: JSON.stringify(form)
     });
-    const result = (await response.json()) as BookMutationResponse;
+    const result = (await response.json()) as ProductMutationResponse;
 
     setIsSaving(false);
 
@@ -113,12 +113,12 @@ export function BooksManager() {
 
     setForm(emptyForm);
     setEditingBook(null);
-    setMessage(editingBook ? "Buku berhasil diperbarui." : "Buku berhasil ditambahkan.");
+    setMessage(editingBook ? "Produk berhasil diperbarui." : "Produk berhasil ditambahkan.");
     await fetchBooks(search);
   }
 
-  async function handleDelete(book: BookRow) {
-    const confirmed = window.confirm(`Hapus buku ${book.title}?`);
+  async function handleDelete(book: ProductRow) {
+    const confirmed = window.confirm(`Hapus produk ${book.title}?`);
 
     if (!confirmed) {
       return;
@@ -137,11 +137,11 @@ export function BooksManager() {
       return;
     }
 
-    setMessage("Buku berhasil dihapus.");
+    setMessage("Produk berhasil dihapus.");
     await fetchBooks(search);
   }
 
-  function startEdit(book: BookRow) {
+  function startEdit(book: ProductRow) {
     setEditingBook(book);
     setForm({
       title: book.title,
@@ -160,17 +160,17 @@ export function BooksManager() {
 
   const isAdmin = role === "admin";
   const bookTemplateColumns = isAdmin
-    ? ["Judul", "Harga Dasar", "Harga Komunitas", "Harga Jual"]
-    : ["Judul", "Harga Komunitas", "Harga Jual"];
+    ? ["Produk", "Harga Dasar", "Harga Komunitas", "Harga Jual"]
+    : ["Produk", "Harga Komunitas", "Harga Jual"];
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,380px)_1fr]">
       {role ? (
         <div className="space-y-6">
           <form className="space-y-4 rounded-md border border-slate-200 bg-white p-5 shadow-sm" onSubmit={handleSubmit}>
-            <h3 className="text-base font-semibold text-ink">{editingBook ? "Edit Buku" : "Tambah Buku"}</h3>
+            <h3 className="text-base font-semibold text-ink">{editingBook ? "Edit Produk" : "Tambah Produk"}</h3>
             <label className="block">
-              <span className="text-sm font-medium text-slate-700">Judul</span>
+              <span className="text-sm font-medium text-slate-700">Nama Produk</span>
               <input
                 className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                 onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
@@ -234,11 +234,11 @@ export function BooksManager() {
             </div>
           </form>
           <BulkCsvImport
-            description="Upload CSV dengan kolom Judul, Harga Komunitas, dan Harga Jual. Admin juga bisa memakai kolom Harga Dasar."
+            description="Upload CSV dengan kolom Produk, Harga Komunitas, dan Harga Jual. Admin juga bisa memakai kolom Harga Dasar."
             endpoint="/api/books/bulk"
             onImported={() => fetchBooks(search)}
             templateColumns={bookTemplateColumns}
-            title="Import Buku dari CSV"
+            title="Import Produk dari CSV"
           />
         </div>
       ) : (
@@ -259,7 +259,7 @@ export function BooksManager() {
             <input
               className="min-w-0 flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Cari judul buku"
+              placeholder="Cari nama produk"
               type="search"
               value={search}
             />
@@ -271,10 +271,10 @@ export function BooksManager() {
         <div className="p-4">
           {error ? <p className="mb-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
           {message ? <p className="mb-3 rounded-md bg-teal-50 px-3 py-2 text-sm text-teal-800">{message}</p> : null}
-          {isLoading ? <p className="text-sm text-slate-600">Memuat buku...</p> : null}
+          {isLoading ? <p className="text-sm text-slate-600">Memuat produk...</p> : null}
           {!isLoading && books.length === 0 ? (
             <p className="rounded-md border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-600">
-              Belum ada data buku.
+              Belum ada data produk.
             </p>
           ) : null}
           {books.length > 0 ? (
@@ -318,7 +318,7 @@ export function BooksManager() {
               <table className="w-full table-fixed text-left text-sm">
                 <thead className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
                   <tr>
-                    <th className="py-3 pr-4 font-semibold">Judul</th>
+                    <th className="py-3 pr-4 font-semibold">Produk</th>
                     {isAdmin ? <th className="py-3 pr-4 font-semibold">Harga Dasar</th> : null}
                     <th className="py-3 pr-4 font-semibold">Harga Komunitas</th>
                     <th className="py-3 pr-4 font-semibold">Harga Jual</th>

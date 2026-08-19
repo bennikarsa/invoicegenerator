@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
-import type { BookBase, Customer, DiscountType, InvoiceDetailForRole, InvoiceSettings, Shipping } from "@/types";
+import type { Customer, DiscountType, InvoiceDetailForRole, InvoiceSettings, ProductBase, Shipping } from "@/types";
 import { buildInvoiceText, calculateInvoiceTotal, formatRupiah } from "@/lib/invoice";
 import { DEFAULT_SETTINGS } from "@/lib/settings";
 import { ShareInvoiceDialog } from "@/components/share-invoice-dialog";
@@ -55,7 +55,7 @@ function matchesSearch(values: string[], search: string) {
 
 export function GenerateInvoice() {
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [books, setBooks] = useState<BookBase[]>([]);
+  const [books, setBooks] = useState<ProductBase[]>([]);
   const [shippings, setShippings] = useState<Shipping[]>([]);
   const [settings, setSettings] = useState<InvoiceSettings>(DEFAULT_SETTINGS);
   const [customerId, setCustomerId] = useState("");
@@ -89,7 +89,7 @@ export function GenerateInvoice() {
         fetch("/api/settings")
       ]);
       const customersResult = (await customersResponse.json()) as LookupResponse<"customers", Customer[]>;
-      const booksResult = (await booksResponse.json()) as LookupResponse<"books", BookBase[]>;
+      const booksResult = (await booksResponse.json()) as LookupResponse<"books", ProductBase[]>;
       const shippingsResult = (await shippingsResponse.json()) as LookupResponse<"shippings", Shipping[]>;
       const settingsResult = (await settingsResponse.json()) as LookupResponse<"settings", InvoiceSettings>;
 
@@ -440,7 +440,7 @@ export function GenerateInvoice() {
                     onChange={(event) => setBookId(event.target.value)}
                     value={bookId}
                   >
-                    <option value="">Pilih buku</option>
+                    <option value="">Pilih produk</option>
                     {books.map((book) => (
                       <option key={book.id} value={book.id}>
                         {book.title} - {formatRupiah(book.harga_jual)}
@@ -448,7 +448,7 @@ export function GenerateInvoice() {
                     ))}
                   </select>
                   <button
-                    aria-label="Cari buku"
+                    aria-label="Cari produk"
                     className="flex h-10 w-11 items-center justify-center rounded-md border border-teal-700/20 bg-teal-50 text-xl leading-none text-brand shadow-sm hover:bg-teal-100"
                     onClick={() => {
                       setIsBookSearchOpen((current) => !current);
@@ -466,12 +466,12 @@ export function GenerateInvoice() {
                         autoFocus
                         className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
                         onChange={(event) => setBookSearch(event.target.value)}
-                        placeholder="Cari judul buku"
+                        placeholder="Cari nama produk"
                         type="search"
                         value={bookSearch}
                       />
                       <button
-                        aria-label="Tutup pencarian buku"
+                        aria-label="Tutup pencarian produk"
                         className="rounded-md border border-slate-300 text-sm font-semibold hover:bg-slate-100"
                         onClick={() => setIsBookSearchOpen(false)}
                         type="button"
@@ -498,10 +498,10 @@ export function GenerateInvoice() {
                             </button>
                           ))
                         ) : (
-                          <p className="px-3 py-2 text-sm text-slate-500">Buku tidak ditemukan.</p>
+                          <p className="px-3 py-2 text-sm text-slate-500">Produk tidak ditemukan.</p>
                         )
                       ) : (
-                        <p className="px-3 py-2 text-sm text-slate-500">Ketik judul buku.</p>
+                        <p className="px-3 py-2 text-sm text-slate-500">Ketik nama produk.</p>
                       )}
                     </div>
                   </div>
@@ -659,7 +659,7 @@ export function GenerateInvoice() {
           <span className="text-right font-bold">{formatRupiah(totals.total)}</span>
         </div>
         <pre className="min-h-[360px] max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-md bg-slate-950 p-4 text-xs leading-5 text-slate-50 sm:min-h-[480px]">
-          {previewText || "Pilih pembeli dan buku untuk melihat preview invoice."}
+          {previewText || "Pilih pembeli dan produk untuk melihat preview invoice."}
         </pre>
       </aside>
       {sharePayload ? (

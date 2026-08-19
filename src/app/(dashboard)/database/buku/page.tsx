@@ -5,8 +5,8 @@ export default function BukuPage() {
   return (
     <>
       <PageHeader
-        title="Database Buku"
-        description="Kelola judul buku, harga komunitas, harga jual, dan harga modal khusus admin."
+        title="Database Produk"
+        description="Kelola nama produk, harga komunitas, harga jual, dan harga modal khusus admin."
       />
       <BooksManager />
     </>

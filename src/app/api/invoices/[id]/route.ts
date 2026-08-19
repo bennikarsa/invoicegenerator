@@ -127,7 +127,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
   }
 
   if (!books || books.length !== new Set(bookIds).size) {
-    return NextResponse.json({ ok: false, message: "Ada buku yang tidak ditemukan." }, { status: 400 });
+    return NextResponse.json({ ok: false, message: "Ada produk yang tidak ditemukan." }, { status: 400 });
   }
 
   const bookById = new Map(books.map((book) => [book.id, book]));
@@ -135,11 +135,10 @@ export async function PUT(request: Request, { params }: RouteContext) {
     const book = bookById.get(item.book_id);
 
     if (!book) {
-      throw new Error("Ada buku yang tidak ditemukan.");
+      throw new Error("Ada produk yang tidak ditemukan.");
     }
 
     return {
-      invoice_id: params.id,
       book_id: item.book_id,
       qty: item.qty,
       harga_jual_snapshot: book.harga_jual,
@@ -161,34 +160,26 @@ export async function PUT(request: Request, { params }: RouteContext) {
   });
 
   if (totalDiscount > subtotal) {
-    return NextResponse.json({ ok: false, message: "Diskon tidak boleh melebihi subtotal buku." }, { status: 400 });
+    return NextResponse.json({ ok: false, message: "Diskon tidak boleh melebihi subtotal produk." }, { status: 400 });
   }
 
-  const { error: invoiceError } = await supabase
-    .from("invoices")
-    .update({
-      customer_id: input.customer_id,
-      shipping_id: input.shipping_id,
-      tanggal: input.tanggal,
-      diskon_type: input.diskon_type,
-      diskon_value: input.diskon_value,
-      diskon_label: input.diskon_label,
-      diskon_2_type: input.diskon_2_type,
-      diskon_2_value: input.diskon_2_value,
-      diskon_2_label: input.diskon_2_label,
-      status: input.status
-    })
-    .eq("id", params.id);
+  const { error: saveError } = await supabase.rpc("save_invoice_with_items", {
+    p_invoice_id: params.id,
+    p_customer_id: input.customer_id,
+    p_shipping_id: input.shipping_id,
+    p_tanggal: input.tanggal,
+    p_diskon_type: input.diskon_type,
+    p_diskon_value: input.diskon_value,
+    p_diskon_label: input.diskon_label,
+    p_diskon_2_type: input.diskon_2_type,
+    p_diskon_2_value: input.diskon_2_value,
+    p_diskon_2_label: input.diskon_2_label,
+    p_status: input.status,
+    p_items: itemsWithSnapshots
+  });
 
-  if (invoiceError) {
-    return NextResponse.json({ ok: false, message: invoiceError.message }, { status: 500 });
-  }
-
-  await supabase.from("invoice_items").delete().eq("invoice_id", params.id);
-  const { error: itemsError } = await supabase.from("invoice_items").insert(itemsWithSnapshots);
-
-  if (itemsError) {
-    return NextResponse.json({ ok: false, message: itemsError.message }, { status: 500 });
+  if (saveError) {
+    return NextResponse.json({ ok: false, message: saveError.message }, { status: 500 });
   }
 
   const { data: invoiceData, error: detailError } = await supabase

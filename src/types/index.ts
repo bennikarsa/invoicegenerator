@@ -1,6 +1,6 @@
 export type UserRole = "admin" | "komunitas";
 
-export type BookBase = {
+export type ProductBase = {
   id: string;
   title: string;
   harga_komunitas: number;
@@ -8,11 +8,11 @@ export type BookBase = {
   created_at: string;
 };
 
-export type AdminBook = BookBase & {
+export type AdminProduct = ProductBase & {
   harga_modal: number;
 };
 
-export type BookForRole<Role extends UserRole> = Role extends "admin" ? AdminBook : BookBase;
+export type ProductForRole<Role extends UserRole> = Role extends "admin" ? AdminProduct : ProductBase;
 
 export type Customer = {
   id: string;

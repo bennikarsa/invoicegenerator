@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 
 import {
-  type AdminBookInput,
-  type PublicBookInput,
-  sanitizeAdminBookInput,
-  sanitizePublicBookInput,
-  validateAdminBookInput,
-  validatePublicBookInput
+  type AdminProductInput,
+  type PublicProductInput,
+  sanitizeAdminProductInput,
+  sanitizePublicProductInput,
+  validateAdminProductInput,
+  validatePublicProductInput
 } from "@/lib/books";
 import { getCurrentAuthSession } from "@/lib/server-auth";
 import { createSupabaseClient } from "@/lib/supabase";
@@ -33,17 +33,17 @@ export async function PUT(request: Request, { params }: RouteContext) {
   const body = (await request.json().catch(() => null)) as Partial<
     Record<"title" | "harga_modal" | "harga_komunitas" | "harga_jual", unknown>
   > | null;
-  let input: AdminBookInput | PublicBookInput;
+  let input: AdminProductInput | PublicProductInput;
   let validation: { ok: boolean; message: string };
 
   if (session.role === "admin") {
-    const adminInput = sanitizeAdminBookInput(body ?? {});
+    const adminInput = sanitizeAdminProductInput(body ?? {});
     input = adminInput;
-    validation = validateAdminBookInput(adminInput);
+    validation = validateAdminProductInput(adminInput);
   } else {
-    const publicInput = sanitizePublicBookInput(body ?? {});
+    const publicInput = sanitizePublicProductInput(body ?? {});
     input = publicInput;
-    validation = validatePublicBookInput(publicInput);
+    validation = validatePublicProductInput(publicInput);
   }
 
   if (!validation.ok) {
@@ -72,7 +72,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
     return NextResponse.json(
       {
         ok: false,
-        message: error instanceof Error ? error.message : "Gagal memperbarui buku."
+        message: error instanceof Error ? error.message : "Gagal memperbarui produk."
       },
       { status: 500 }
     );
@@ -99,7 +99,7 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
     return NextResponse.json(
       {
         ok: false,
-        message: error instanceof Error ? error.message : "Gagal menghapus buku."
+        message: error instanceof Error ? error.message : "Gagal menghapus produk."
       },
       { status: 500 }
     );
