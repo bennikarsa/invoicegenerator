@@ -265,18 +265,14 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
   }
 
   const supabase = createSupabaseClient();
-  const { data: invoice, error: invoiceError } = await supabase
+  const { error: invoiceError } = await supabase
     .from("invoices")
-    .select("status")
+    .select("id")
     .eq("id", params.id)
     .single();
 
   if (invoiceError) {
     return NextResponse.json({ ok: false, message: invoiceError.message }, { status: 500 });
-  }
-
-  if (invoice.status !== "draft") {
-    return NextResponse.json({ ok: false, message: "Hanya draft yang dapat dihapus." }, { status: 400 });
   }
 
   const { error } = await supabase.from("invoices").delete().eq("id", params.id);

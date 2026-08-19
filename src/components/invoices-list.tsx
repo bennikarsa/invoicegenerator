@@ -121,8 +121,12 @@ export function InvoicesList({ status }: InvoicesListProps) {
     fetchInvoices("");
   }, [fetchInvoices]);
 
-  async function deleteDraft(invoice: InvoiceDetailForRole) {
-    const confirmed = window.confirm(`Hapus draft ${invoice.invoice_number}?`);
+  async function deleteInvoice(invoice: InvoiceDetailForRole) {
+    const confirmed = window.confirm(
+      invoice.status === "draft"
+        ? `Hapus draft ${invoice.invoice_number}? Tindakan ini tidak dapat dibatalkan.`
+        : `Hapus permanen invoice ${invoice.invoice_number} (${getStatusLabel(invoice.status)})? Invoice dan seluruh itemnya akan dihapus. Invoice done juga akan hilang dari laporan. Tindakan ini tidak dapat dibatalkan.`
+    );
 
     if (!confirmed) {
       return;
@@ -136,7 +140,11 @@ export function InvoicesList({ status }: InvoicesListProps) {
       return;
     }
 
-    setMessage("Draft berhasil dihapus.");
+    setMessage(
+      invoice.status === "draft"
+        ? `Draft ${invoice.invoice_number} berhasil dihapus.`
+        : `Invoice ${invoice.invoice_number} berhasil dihapus permanen.`
+    );
     await fetchInvoices(search);
   }
 
@@ -357,13 +365,22 @@ export function InvoicesList({ status }: InvoicesListProps) {
                       </button>
                     ) : null}
                     {status === "history" ? (
-                      <button
-                        className="rounded-md border border-amber-300 bg-amber-50 px-2 py-2 text-xs font-medium text-amber-800 hover:bg-amber-100"
-                        onClick={() => updateInvoiceStatus(invoice, "draft")}
-                        type="button"
-                      >
-                        Tarik ke Draft
-                      </button>
+                      <>
+                        <button
+                          className="rounded-md border border-amber-300 bg-amber-50 px-2 py-2 text-xs font-medium text-amber-800 hover:bg-amber-100"
+                          onClick={() => updateInvoiceStatus(invoice, "draft")}
+                          type="button"
+                        >
+                          Tarik ke Draft
+                        </button>
+                        <button
+                          className="rounded-md border border-red-300 bg-red-50 px-2 py-2 text-xs font-medium text-red-700 hover:bg-red-100"
+                          onClick={() => deleteInvoice(invoice)}
+                          type="button"
+                        >
+                          Hapus
+                        </button>
+                      </>
                     ) : null}
                   </div>
                   {status === "draft" ? (
@@ -376,7 +393,7 @@ export function InvoicesList({ status }: InvoicesListProps) {
                       </Link>
                       <button
                         className="rounded-md border border-red-200 px-2 py-2 text-xs font-medium text-red-700 hover:bg-red-50"
-                        onClick={() => deleteDraft(invoice)}
+                        onClick={() => deleteInvoice(invoice)}
                         type="button"
                       >
                         Hapus
@@ -472,13 +489,22 @@ export function InvoicesList({ status }: InvoicesListProps) {
                             </button>
                           ) : null}
                           {status === "history" ? (
-                            <button
-                              className="rounded-md border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-100"
-                              onClick={() => updateInvoiceStatus(invoice, "draft")}
-                              type="button"
-                            >
-                              Tarik ke Draft
-                            </button>
+                            <>
+                              <button
+                                className="rounded-md border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-100"
+                                onClick={() => updateInvoiceStatus(invoice, "draft")}
+                                type="button"
+                              >
+                                Tarik ke Draft
+                              </button>
+                              <button
+                                className="rounded-md border border-red-300 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100"
+                                onClick={() => deleteInvoice(invoice)}
+                                type="button"
+                              >
+                                Hapus
+                              </button>
+                            </>
                           ) : null}
                           {status === "draft" ? (
                             <>
@@ -490,7 +516,7 @@ export function InvoicesList({ status }: InvoicesListProps) {
                               </Link>
                               <button
                                 className="rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50"
-                                onClick={() => deleteDraft(invoice)}
+                                onClick={() => deleteInvoice(invoice)}
                                 type="button"
                               >
                                 Hapus
